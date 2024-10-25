@@ -110,7 +110,7 @@ func (p *Page) Pagination() bool {
 
 	p.Loading()
 
-	log.Println("Moved to next page")
+	log.Println("[page] moved to the next page")
 	return true
 }
 
@@ -152,7 +152,7 @@ func (p *Page) Filter() error {
 		return fmt.Errorf("failed to apply filter: %w", err)
 	}
 
-	log.Println("Filter applied")
+	log.Println("[page] filter applied")
 	return nil
 }
 

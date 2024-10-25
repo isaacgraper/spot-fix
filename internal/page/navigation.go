@@ -19,7 +19,7 @@ func (p *Page) NavigateToInconsistencies() error {
 
 	has, el, err := p.Page.Has(`document.querySelector('.beamerAnnouncementSnippet')`)
 	if err != nil {
-		log.Printf("error while trying to select %v", el)
+		log.Printf("element do not exist: %v", el)
 	}
 	if !has {
 		p.Page.MustEval(`() => document.querySelector('.beamerAnnouncementSnippet').style.display="none"`)

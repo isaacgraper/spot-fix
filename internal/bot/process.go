@@ -1,14 +1,19 @@
 package bot
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
+	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
+	"github.com/isaacgraper/spotfix.git/internal/common"
 	"github.com/isaacgraper/spotfix.git/internal/common/config"
+	"github.com/isaacgraper/spotfix.git/internal/common/report"
 	"github.com/isaacgraper/spotfix.git/internal/page"
 )
 
@@ -25,7 +30,7 @@ func NewProcess() *Process {
 }
 
 func (pr *Process) Execute(c *config.Config) error {
-	browser := rod.New().ControlURL(launcher.New().Headless(false).MustLaunch()).MustConnect()
+	browser := rod.New().ControlURL(launcher.New().Headless(false).MustLaunch()).MustConnect().Trace(false)
 	defer browser.MustClose()
 
 	// URL must not working as expected in my env file
@@ -56,7 +61,6 @@ func (pr *Process) Execute(c *config.Config) error {
 	if !c.Filter {
 		pr.ProcessHandler(c)
 	}
-
 	return nil
 }
 
@@ -65,7 +69,7 @@ func (pr *Process) ProcessHandler(c *config.Config) (error, bool) {
 		pr.ProcessResult(c)
 
 		if !pr.page.Pagination() {
-			log.Println("no more pages to process")
+			log.Println("[process] no more pages to process")
 			break
 		}
 	}
@@ -74,34 +78,73 @@ func (pr *Process) ProcessHandler(c *config.Config) (error, bool) {
 
 func (pr *Process) ProcessResult(c *config.Config) {
 	if c.Max < 1 {
-		log.Println("no results to process")
+		log.Println("[process] no results to process")
 		return
 	}
 
-	// debug, eval is not working
-	pr.page.Page.MustEval(`() => {
-		const el = document.querySelectorAll('[data-id]');
-		for (let i = 1; i < el.length; i++) {
-			el[i].id = 'inconsistence-' + i;
-		}
-	}`)
+	// var wg sync.WaitGroup
+	// var mu sync.Mutex
 
-	log.Printf("batch: %d, max: %d", c.BatchSize, c.Max)
 	batchSize := c.BatchSize
 	for i := 0; i < c.Max; i += batchSize {
 		end := i + batchSize
 		if end > c.Max {
 			end = c.Max
 		}
+
+		// wg.Add(1)
+		// go func(start, end int) {
+		// 	defer wg.Done()
+
+		// 	mu.Lock()
+		// 	pr.ProcessBatch(start, end, c)
+		// 	defer mu.Unlock()
+		// }(i+1, end)
+		log.Println("[process] batch initializing")
 		pr.ProcessBatch(i+1, end, c)
 	}
-	// implements SendEmail here before ending the process
+	// wg.Wait()
+
+	content, err := os.ReadFile("relatório-inconsistências.txt")
+	if err != nil {
+		log.Println("error while reading report file")
+	}
+
+	content = []byte(report.FormatReport(content))
+
+	log.Println(content)
+
+	e, err := common.NewEmail(
+		os.Getenv("EMAIL_FROM"),
+		os.Getenv("EMAIL_PWD"),
+		[]string{os.Getenv("EMAIL_TO")},
+		"smtp.gmail.com",
+		"587",
+		"Relatório de inconsistências",
+		content,
+	)
+	if err != nil {
+		log.Println("[report] error while trying to create new email")
+	}
+
+	if err = e.SendEmail(); err != nil {
+		log.Println("error sending email: ", err)
+	}
 	pr.EndProcess()
 }
 
 func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
+	pr.page.Loading()
 
-	// debug, eval is not working
+	pr.page.Page.MustEval(`() => {
+        const elements = document.querySelectorAll("tr[data-id]");
+        elements.forEach((el, index) => {
+            el.id = "inconsistence-" + (index + 1);
+        });
+    }`)
+
+	pr.page.Loading()
+
 	results := pr.page.Page.MustEval(fmt.Sprintf(`() => {
 		const results = [];
 		for (let i = %d; i <= %d; i++) {
@@ -117,11 +160,15 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 		}
 		return results;
 	}`, start, end))
+
 	pr.page.Loading()
 
-	// var wg sync.WaitGroup
+	var data []report.ReportData
+	var wg sync.WaitGroup
+	var mu sync.Mutex
 
 	for _, result := range results.Arr() {
+		index := result.Get("index").Int()
 		category := result.Get("category").String()
 		hour := result.Get("hour").String()
 		name := result.Get("name").String()
@@ -129,42 +176,51 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 		hourSplit := strings.Split(hour, " ")
 		hour = strings.TrimSpace(hourSplit[1])
 
-		shouldProcess := (c.Hour == "" && c.Category == "") ||
-			(c.Hour == "" && category == c.Category) ||
-			(c.Category == "" && hour == c.Hour) ||
-			(hour == c.Hour && category == c.Category)
+		shouldProcess := (c.Hour == "" || hour == c.Hour) &&
+			(c.Category == "" || category == c.Category)
+			// && category != "Não registrado"
+
+		if !shouldProcess {
+			log.Println("[process] inconsistency not found")
+		}
 
 		if shouldProcess {
-			log.Printf("%s - %s - %s", name, hour, category)
+			wg.Add(1)
+			go func(index int, name, hour, category string) {
+				defer wg.Done()
+				log.Println("[file] saving inconsistencies")
 
-			index := result.Get("index").Int()
+				mu.Lock()
+				data = append(data, report.ReportData{
+					Index:    index,
+					Name:     name,
+					Hour:     hour,
+					Category: category,
+				})
+				mu.Unlock()
+			}(index, name, hour, category)
+			wg.Wait()
+
+			JsonData, err := json.MarshalIndent(data, "", "  ")
+			if err != nil {
+				log.Println("error marshal json data")
+			}
+
+			report.NewFile("relatório-inconsistências.txt", JsonData).SaveFile()
+
+			log.Println("[file] saving file")
+
+			log.Printf("[process] found:  %s - %s - %s", name, hour, category)
 
 			pr.page.Loading()
 			time.Sleep(time.Millisecond * 250)
 
-			if err := pr.page.ClickWithRetry(fmt.Sprintf(`#inconsistence-%d i`, index), 6); err != nil {
+			if err := pr.page.ClickWithRetry(fmt.Sprintf(`tr#inconsistency-%d.ng-scope i`, index), 6); err != nil {
 				log.Printf("failed to click on inconsistency %v", err)
 			}
+
+			log.Println("[process] clicked into inconsistency")
 		}
-
-		// resultJSON, err := result.MarshalJSON()
-		// if err != nil {
-		// 	log.Printf("error converting to json: %v", err)
-		// 	continue
-		// }
-
-		// concatStr := string(resultJSON)
-
-		// if hour == c.Hour {
-		// 	wg.Add(1)
-		// 	go func(concatStr string, index int) {
-		// 		fileName := fmt.Sprintf("relatório-%s.txt", time.Now().Format("02-01-2006/13:10:00"))
-		// 		common.NewFile(fileName, []byte(concatStr)).SaveFile()
-		// 	}(concatStr, index)
-
-		// 	wg.Wait()
-
-		// }
 	}
 	return nil
 }
@@ -179,6 +235,7 @@ func (pr *Process) ProcessFilter(c *config.Config) {
 
 		if pr.EndProcess() {
 			if pr.page.Pagination() {
+				log.Println("[process] pagination started")
 				continue
 			}
 		} else {
@@ -217,6 +274,6 @@ func (pr *Process) EndProcess() bool {
 	}
 	pr.page.Loading()
 
-	log.Println("inconsistencies processed!")
+	log.Println("[process] inconsistencies processed")
 	return true
 }

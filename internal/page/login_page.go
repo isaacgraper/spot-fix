@@ -46,7 +46,7 @@ func (p *Page) Login(c *config.Credential) error {
 
 	p.Loading()
 
-	log.Printf("Bot logged in successfully!\n")
+	log.Println("[login] bot logged in successfully")
 
 	return nil
 }

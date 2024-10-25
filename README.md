@@ -53,10 +53,7 @@ go run . exec --filter --filter-category="Não registrado"
 
 ### Afazer:
 
-- Incluir error handling
-- Ajustar o horário baseado em regra de negócio
-- Adicionar docker image da aplicação
-- Adicionar paralelismo no processamento em batch
+- Modulo de email
 
 
 
