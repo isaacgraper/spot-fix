@@ -1,6 +1,7 @@
 package report
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -19,28 +20,46 @@ type ReportData struct {
 }
 
 func FormatReport(content []byte) string {
+	correctedContent := bytes.ReplaceAll(content, []byte("]["), []byte(","))
 	var data []ReportData
 
-	if err := json.Unmarshal(content, &data); err != nil {
-		return ""
+	if err := json.Unmarshal(correctedContent, &data); err != nil {
+		return fmt.Sprintf("error: %v", err)
 	}
 
 	var formattedText string
+	uniqueRecords := make([]ReportData, 0)
+
 	for _, entry := range data {
-		formattedText += fmt.Sprintf("%-30s %-30s %-20s", entry.Name, entry.Hour, entry.Category)
+		if !ContainsReport(uniqueRecords, entry) {
+			uniqueRecords = append(uniqueRecords, entry)
+		}
+	}
+
+	for _, entry := range uniqueRecords {
+		formattedText += fmt.Sprintf("%d - %-40s %-10s %-10s", entry.Index, entry.Name, entry.Hour, entry.Category)
 	}
 
 	return formattedText
 }
 
-func NewFile(fileName string, content []byte) *File {
+func ContainsReport(data []ReportData, record ReportData) bool {
+	for _, r := range data {
+		if r.Index == record.Index {
+			return true
+		}
+	}
+	return false
+}
+
+func NewReport(fileName string, content []byte) *File {
 	return &File{
 		FileName: fileName,
 		Content:  content,
 	}
 }
 
-func (f *File) SaveFile() error {
+func (f *File) SaveReport() error {
 	file, err := os.OpenFile(f.FileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return fmt.Errorf("error opening file for appending: %v", err)

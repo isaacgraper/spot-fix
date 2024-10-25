@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -30,7 +29,7 @@ func NewProcess() *Process {
 }
 
 func (pr *Process) Execute(c *config.Config) error {
-	browser := rod.New().ControlURL(launcher.New().Headless(false).MustLaunch()).MustConnect().Trace(false)
+	browser := rod.New().ControlURL(launcher.New().Headless(true).MustLaunch()).MustConnect().Trace(false)
 	defer browser.MustClose()
 
 	// URL must not working as expected in my env file
@@ -110,25 +109,27 @@ func (pr *Process) ProcessResult(c *config.Config) {
 		log.Println("error while reading report file")
 	}
 
-	content = []byte(report.FormatReport(content))
+	formatContent := report.FormatReport(content)
 
-	log.Println(content)
+	log.Println(formatContent)
 
 	e, err := common.NewEmail(
 		os.Getenv("EMAIL_FROM"),
 		os.Getenv("EMAIL_PWD"),
 		[]string{os.Getenv("EMAIL_TO")},
 		"smtp.gmail.com",
-		"587",
+		"465", // 587, 465, 25
 		"Relatório de inconsistências",
-		content,
+		[]byte(formatContent),
 	)
 	if err != nil {
 		log.Println("[report] error while trying to create new email")
 	}
 
+	log.Println(e)
+
 	if err = e.SendEmail(); err != nil {
-		log.Println("error sending email: ", err)
+		log.Println("[report] error sending email: ", err)
 	}
 	pr.EndProcess()
 }
@@ -164,8 +165,8 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 	pr.page.Loading()
 
 	var data []report.ReportData
-	var wg sync.WaitGroup
-	var mu sync.Mutex
+	// var wg sync.WaitGroup
+	// var mu sync.Mutex
 
 	for _, result := range results.Arr() {
 		index := result.Get("index").Int()
@@ -185,28 +186,28 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 		}
 
 		if shouldProcess {
-			wg.Add(1)
-			go func(index int, name, hour, category string) {
-				defer wg.Done()
-				log.Println("[file] saving inconsistencies")
+			// wg.Add(1)
+			// go func(index int, name, hour, category string) {
+			// 	defer wg.Done()
+			log.Println("[file] saving inconsistencies")
 
-				mu.Lock()
-				data = append(data, report.ReportData{
-					Index:    index,
-					Name:     name,
-					Hour:     hour,
-					Category: category,
-				})
-				mu.Unlock()
-			}(index, name, hour, category)
-			wg.Wait()
+			// mu.Lock()
+			data = append(data, report.ReportData{
+				Index:    index,
+				Name:     name,
+				Hour:     hour,
+				Category: category,
+			})
+			// 	mu.Unlock()
+			// }(index, name, hour, category)
+			// wg.Wait()
 
 			JsonData, err := json.MarshalIndent(data, "", "  ")
 			if err != nil {
 				log.Println("error marshal json data")
 			}
 
-			report.NewFile("relatório-inconsistências.txt", JsonData).SaveFile()
+			report.NewReport("relatório-inconsistências.txt", JsonData).SaveReport()
 
 			log.Println("[file] saving file")
 
