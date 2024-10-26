@@ -14,12 +14,6 @@ type Page struct {
 	Page *rod.Page
 }
 
-// func (p *Page) NewPage(page *rod.Page) *Page {
-// 	return &Page{
-// 		Page: page,
-// 	}
-// }
-
 func (p *Page) Click(selector string, screenshot bool) error {
 	err := rod.Try(func() {
 		element, err := p.Page.Element(selector)
