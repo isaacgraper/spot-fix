@@ -1,16 +1,10 @@
 package report
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 )
-
-type File struct {
-	FileName string
-	Content  []byte
-}
 
 type ReportData struct {
 	Index    int    `results:"index"`
@@ -19,31 +13,19 @@ type ReportData struct {
 	Category string `results:"category"`
 }
 
-func FormatReport(content []byte) string {
-	correctedContent := bytes.ReplaceAll(content, []byte("]["), []byte(","))
-	var data []ReportData
-
-	if err := json.Unmarshal(correctedContent, &data); err != nil {
-		return fmt.Sprintf("error: %v", err)
-	}
-
-	var formattedText string
-	uniqueRecords := make([]ReportData, 0)
-
-	for _, entry := range data {
-		if !ContainsReport(uniqueRecords, entry) {
-			uniqueRecords = append(uniqueRecords, entry)
-		}
-	}
-
-	for _, entry := range uniqueRecords {
-		formattedText += fmt.Sprintf("%d - %-40s %-10s %-10s", entry.Index, entry.Name, entry.Hour, entry.Category)
-	}
-
-	return formattedText
+type File struct {
+	FileName string
+	Content  []ReportData
 }
 
-func ContainsReport(data []ReportData, record ReportData) bool {
+func NewReport(fileName string, content []ReportData) *File {
+	return &File{
+		FileName: fileName,
+		Content:  content,
+	}
+}
+
+func Contains(data []ReportData, record ReportData) bool {
 	for _, r := range data {
 		if r.Index == record.Index {
 			return true
@@ -52,11 +34,18 @@ func ContainsReport(data []ReportData, record ReportData) bool {
 	return false
 }
 
-func NewReport(fileName string, content []byte) *File {
-	return &File{
-		FileName: fileName,
-		Content:  content,
+func (f *File) Format(data []ReportData) []byte {
+	var builder strings.Builder
+
+	for _, element := range data {
+		if Contains(data, element) {
+			builder.WriteString(fmt.Sprintf("Relatório de Inconsistências:\n\n%d - %-40s %-10s %-30s\n", element.Index, element.Name, element.Hour, element.Category))
+		} else {
+			continue
+		}
 	}
+
+	return []byte(builder.String())
 }
 
 func (f *File) SaveReport() error {
@@ -66,7 +55,7 @@ func (f *File) SaveReport() error {
 	}
 	defer file.Close()
 
-	_, err = file.Write(f.Content)
+	_, err = file.Write(f.Format(f.Content))
 	if err != nil {
 		return fmt.Errorf("error inserting new content: %v", err)
 	}

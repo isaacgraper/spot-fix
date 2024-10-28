@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/isaacgraper/spotfix.git/internal/common/config"
+	"github.com/isaacgraper/spotfix.git/internal/report"
 )
 
 func (pr *Process) ProcessHandler(c *config.Config) (error, bool) {
@@ -55,7 +56,7 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 	pr.page.Loading()
 
 	results := pr.page.Page.MustEval(fmt.Sprintf(`() => {
-		const results = [];
+	const results = [];
 		for (let i = %d; i <= %d; i++) {
 			const row = document.querySelector('#inconsistency-' + i);
 			if (row) {
@@ -67,12 +68,12 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 				});
 			}
 		}
-		return results;
+	return results;
 	}`, start, end))
 
 	pr.page.Loading()
 
-	// var data []report.ReportData
+	var data []report.ReportData
 
 	for _, result := range results.Arr() {
 		index := result.Get("index").Int()
@@ -93,6 +94,16 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 
 		if shouldProcess {
 			log.Printf("[processor] found:  %s - %s - %s", name, hour, category)
+
+			data = append(data, report.ReportData{
+				Index:    index,
+				Name:     name,
+				Hour:     hour,
+				Category: category,
+			})
+
+			filename := fmt.Sprintf("relatório-inconsistências-%v.txt", time.Now().Format("02012006"))
+			report.NewReport(filename, data).SaveReport()
 
 			pr.page.Loading()
 			time.Sleep(time.Millisecond * 250)
