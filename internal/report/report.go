@@ -31,12 +31,13 @@ func Contains(seen map[int]bool, index int) bool {
 
 func (f *File) Format(data []ReportData) []byte {
 	var builder strings.Builder
+
 	seen := make(map[int]bool)
 
 	for _, element := range data {
 		if !Contains(seen, element.Index) {
 			seen[element.Index] = true
-			builder.WriteString(fmt.Sprintf("%-2d - %-60s %-10s %s\n", element.Index, element.Name, element.Hour, element.Category))
+			builder.WriteString(fmt.Sprintf("%-1d - %s - %s - %s\n", element.Index, element.Name, element.Hour, element.Category))
 		}
 	}
 
@@ -44,7 +45,7 @@ func (f *File) Format(data []ReportData) []byte {
 }
 
 func (f *File) SaveReport() {
-	fileName := fmt.Sprintf("relatório-inconsistências-%s.pdf", time.Now().Format("02012006"))
+	fileName := fmt.Sprintf("relatório-inconsistências-%s.txt", time.Now().Format("02-01-2006"))
 	filePath := filepath.Join("Z:\\", "RobôCOP", "Relatórios", fileName)
 
 	file, err := os.Create(filePath)
@@ -52,6 +53,7 @@ func (f *File) SaveReport() {
 		fmt.Printf("error creating file: %v\n", err)
 		return
 	}
+
 	defer file.Close()
 
 	_, err = file.Write(f.Format(f.Content))
