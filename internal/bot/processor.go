@@ -34,13 +34,17 @@ func (pr *Process) ProcessResult(c *config.Config) {
 		if end > c.Max {
 			end = c.Max
 		}
-		log.Println("[processor] batch initializing")
+		log.Printf("[processor] batch %d-%d initializing\n", i+1, end)
 		pr.ProcessBatch(i+1, end, c)
 	}
 
-	// Implements email logic here
-	log.Println("[finisher] ending processor")
-	pr.EndProcess()
+	log.Printf("[finisher] ending processor with %d inconsistencies\n", len(pr.Results))
+
+	if len(pr.Results) == 0 {
+		log.Println("[processor] no inconsistencies found")
+	} else {
+		pr.EndProcess()
+	}
 }
 
 func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
@@ -73,8 +77,9 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 
 	pr.page.Loading()
 
-	var data []report.ReportData
-
+	// If I process inconsistencies in the Eval function, It will cause less memorie usage
+	// Or to know how many data I need before passing to the foreach, so I can pass it to
+	// make function and it will create a slice more concise
 	for _, result := range results.Arr() {
 		index := result.Get("index").Int()
 		category := result.Get("category").String()
@@ -85,34 +90,31 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 		hour = strings.TrimSpace(hourSplit[1])
 
 		shouldProcess := (c.Hour == "" || hour == c.Hour) &&
-			(c.Category == "" || category == c.Category)
-			// && category != "Não registrado"
+			(c.Category == "" || category == c.Category) &&
+			category != "Não registrado"
 
 		if !shouldProcess {
 			log.Println("[processor] inconsistency not found")
 		}
 
 		if shouldProcess {
-			log.Printf("[processor] found:  %s - %s - %s", name, hour, category)
-
-			data = append(data, report.ReportData{
+			pr.Results = append(pr.Results, report.ReportData{
 				Index:    index,
 				Name:     name,
 				Hour:     hour,
 				Category: category,
 			})
 
-			filename := fmt.Sprintf("relatório-inconsistências-%v.txt", time.Now().Format("02012006"))
-			report.NewReport(filename, data).SaveReport()
+			report.NewReport(pr.Results).SaveReport()
 
 			pr.page.Loading()
 			time.Sleep(time.Millisecond * 250)
 
-			if err := pr.page.ClickWithRetry(fmt.Sprintf(`#inconsistency-%d.ng-scope i`, index), 3); err != nil {
+			if err := pr.page.ClickWithRetry(fmt.Sprintf(`#inconsistency-%d.ng-scope i`, index), 6); err != nil {
 				log.Printf("failed to click on inconsistency %v", err)
 			}
 
-			log.Println("[processor] clicked into inconsistency")
+			log.Printf("[processor] found:  %s - %s - %s", name, hour, category)
 		}
 	}
 	return nil

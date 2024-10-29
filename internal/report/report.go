@@ -3,7 +3,9 @@ package report
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
+	"time"
 )
 
 type ReportData struct {
@@ -14,50 +16,47 @@ type ReportData struct {
 }
 
 type File struct {
-	FileName string
-	Content  []ReportData
+	Content []ReportData
 }
 
-func NewReport(fileName string, content []ReportData) *File {
+func NewReport(content []ReportData) *File {
 	return &File{
-		FileName: fileName,
-		Content:  content,
+		Content: content,
 	}
 }
 
-func Contains(data []ReportData, record ReportData) bool {
-	for _, r := range data {
-		if r.Index == record.Index {
-			return true
-		}
-	}
-	return false
+func Contains(seen map[int]bool, index int) bool {
+	return seen[index]
 }
 
 func (f *File) Format(data []ReportData) []byte {
 	var builder strings.Builder
+	seen := make(map[int]bool)
 
 	for _, element := range data {
-		if Contains(data, element) {
-			builder.WriteString(fmt.Sprintf("Relatório de Inconsistências:\n\n%d - %-40s %-10s %-30s\n", element.Index, element.Name, element.Hour, element.Category))
-		} else {
-			continue
+		if !Contains(seen, element.Index) {
+			seen[element.Index] = true
+			builder.WriteString(fmt.Sprintf("%-2d - %-60s %-10s %s\n", element.Index, element.Name, element.Hour, element.Category))
 		}
 	}
 
 	return []byte(builder.String())
 }
 
-func (f *File) SaveReport() error {
-	file, err := os.OpenFile(f.FileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func (f *File) SaveReport() {
+	fileName := fmt.Sprintf("relatório-inconsistências-%s.pdf", time.Now().Format("02012006"))
+	filePath := filepath.Join("Z:\\", "RobôCOP", "Relatórios", fileName)
+
+	file, err := os.Create(filePath)
 	if err != nil {
-		return fmt.Errorf("error opening file for appending: %v", err)
+		fmt.Printf("error creating file: %v\n", err)
+		return
 	}
 	defer file.Close()
 
 	_, err = file.Write(f.Format(f.Content))
 	if err != nil {
-		return fmt.Errorf("error inserting new content: %v", err)
+		fmt.Printf("error writing in file: %v\n", err)
+		return
 	}
-	return nil
 }

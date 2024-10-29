@@ -7,11 +7,13 @@ import (
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/isaacgraper/spotfix.git/internal/common/config"
 	"github.com/isaacgraper/spotfix.git/internal/page"
+	"github.com/isaacgraper/spotfix.git/internal/report"
 )
 
 type Process struct {
-	config *config.Config
-	page   *page.Page
+	config  *config.Config
+	page    *page.Page
+	Results []report.ReportData
 }
 
 func NewProcess() *Process {

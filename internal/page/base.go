@@ -98,13 +98,18 @@ func (p *Page) Pagination() bool {
 		return false
 	}
 
-	if err := p.ClickWithRetry(`[ng-click="changePage('next')"]`, 3); err != nil {
+	p.Loading()
+
+	if err := p.ClickWithRetry(`[ng-click="changePage('next')"]`, 6); err != nil {
 		return false
 	}
 
 	p.Loading()
 
 	log.Println("[page] moved to the next page")
+
+	p.Loading()
+
 	return true
 }
 
