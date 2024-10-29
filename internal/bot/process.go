@@ -24,7 +24,7 @@ func NewProcess() *Process {
 }
 
 func (pr *Process) Execute(c *config.Config) error {
-	browser := rod.New().ControlURL(launcher.New().Headless(false).MustLaunch()).MustConnect().Trace(false)
+	browser := rod.New().ControlURL(launcher.New().Headless(true).MustLaunch()).MustConnect().Trace(false)
 	defer browser.MustClose()
 
 	// URL must not working as expected in my env file

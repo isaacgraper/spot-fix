@@ -90,8 +90,8 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 		hour = strings.TrimSpace(hourSplit[1])
 
 		shouldProcess := (c.Hour == "" || hour == c.Hour) &&
-			(c.Category == "" || category == c.Category)
-			// && category != "Não registrado"
+			(c.Category == "" || category == c.Category) &&
+			category != "Não registrado"
 
 		if !shouldProcess {
 			log.Println("[processor] inconsistency not found")
