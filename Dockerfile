@@ -18,8 +18,7 @@ RUN adduser -D user
 USER user
 
 COPY --from=builder /app/bot .
-COPY .env .env
 
 ENTRYPOINT ["./bot"]
 
-CMD ["exec", "--filter", "--hour=", "--category=", "--bash=", "--max"]
+CMD ["exec", "--filter"]

@@ -21,12 +21,19 @@ git clone https://github.com/isaacgraper/spotfix
 
 Criar a imagem docker
 ```bash
-docker build -t spotfix-image .
+docker build -t bot-image .
 ```
 
 Executar a imagem passando a filtragem das inconsistências
 ```bash
-docker run -it --rm spotfix-image --filter
+docker run -it --rm bot-image --filter
+```
+
+Debugar:
+```bash
+docker logs bot-container
+docker run -d --name bot-container bot-image 
+docker exec -it bot-container sh
 ```
 
 
