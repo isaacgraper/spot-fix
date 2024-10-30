@@ -6,17 +6,20 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN go build -o bot
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o bot
 
 FROM alpine:latest
 
-RUN apk add chromium 
+RUN apk update && apk upgrade && apk add --no-cache chromium
+
+WORKDIR /app
 
 RUN adduser -D user
 USER user
 
-WORKDIR /app
-
 COPY --from=builder /app/bot .
+COPY .env .env
 
-CMD ["./bot", "exec"]
+ENTRYPOINT ["./bot"]
+
+CMD ["exec", "--filter", "--hour=", "--category=", "--bash=", "--max"]
