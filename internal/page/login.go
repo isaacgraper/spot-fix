@@ -13,7 +13,7 @@ import (
 
 func (p *Page) Login(c *config.Credential) error {
 	if err := godotenv.Load(); err != nil {
-		log.Println("Error loading .env file:", err)
+		log.Println("error loading .env file:", err)
 		return err
 	}
 

@@ -2,12 +2,14 @@ package bot
 
 import (
 	"log"
+	os "os"
 
 	"github.com/go-rod/rod"
 	"github.com/go-rod/rod/lib/launcher"
 	"github.com/isaacgraper/spotfix.git/internal/common/config"
 	"github.com/isaacgraper/spotfix.git/internal/page"
 	"github.com/isaacgraper/spotfix.git/internal/report"
+	"github.com/joho/godotenv"
 )
 
 type Process struct {
@@ -24,14 +26,19 @@ func NewProcess() *Process {
 }
 
 func (pr *Process) Execute(c *config.Config) error {
-
 	path, _ := launcher.LookPath()
-	u := launcher.New().Bin(path).MustLaunch()
+	u := launcher.New().Bin(path).Headless(true).MustLaunch()
 	browser := rod.New().ControlURL(u).MustConnect()
+
 	defer browser.MustClose()
 
+	if err := godotenv.Load(); err != nil {
+		log.Println("error loading .env file:", err)
+		return err
+	}
+
 	// URL must not working as expected in my env file
-	pageInstance := browser.MustPage("https://orbenk1.nexti.com/").MustWaitLoad()
+	pageInstance := browser.MustPage(os.Getenv("URL")).MustWaitLoad()
 
 	pr.page = &page.Page{
 		Page: pageInstance,

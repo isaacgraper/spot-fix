@@ -38,16 +38,6 @@ func Run() error {
 						Usage: "Enable filtering before the execution",
 						Value: false,
 					},
-					&cli.BoolFlag{
-						Name:  "filter-category",
-						Usage: "Enable with filter to process results based on category",
-						Value: false,
-					},
-					&cli.BoolFlag{
-						Name:  "adjustment",
-						Usage: "Enable adjustment process",
-						Value: false,
-					},
 					&cli.IntFlag{
 						Name:  "batch",
 						Usage: "Batch size for process without filter",
@@ -59,9 +49,7 @@ func Run() error {
 						ctx.String("hour"),
 						ctx.String("category"),
 						ctx.Bool("filter"),
-						// implement filter category with filter
 						ctx.Int("max"),
-						ctx.Bool("adjustment"),
 						ctx.Int("batch"),
 					)
 
