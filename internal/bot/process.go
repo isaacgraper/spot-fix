@@ -27,7 +27,7 @@ func NewProcess() *Process {
 
 func (pr *Process) Execute(c *config.Config) error {
 	path, _ := launcher.LookPath()
-	u := launcher.New().Bin(path).Headless(true).MustLaunch()
+	u := launcher.New().Bin(path).Headless(false).MustLaunch()
 	browser := rod.New().ControlURL(u).MustConnect()
 
 	defer browser.MustClose()
