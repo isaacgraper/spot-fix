@@ -4,7 +4,7 @@ Uma automação para a página do Nexti Web, para lidar com as inconsistência d
 
 ### Instalação
 
-É necessário ter o [Chromium](https://www.chromium.org/getting-involved/download-chromium/) instalado, para seguir com a instalação
+É necessário ter o [Chromium](https://www.chromium.org/getting-involved/download-chromium/) e [Golang](https://go.dev/doc/install) instalado, para seguir com a instalação
 
 ```bash
 git clone https://github.com/isaacgraper/spotfix
