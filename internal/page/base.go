@@ -167,7 +167,7 @@ func (p *Page) DateFilter() error {
 
 	el.MustInputTime(newDate)
 
-	log.Printf("date: %s passed to the filter", newDate)
+	log.Printf("[page] date: %s passed to the filter", newDate.Format("02-01-2006"))
 	return nil
 }
 

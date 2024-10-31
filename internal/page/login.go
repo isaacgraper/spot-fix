@@ -35,7 +35,7 @@ func (p *Page) Login(c *config.Credential) error {
 		return err
 	}
 	// hardcode is not the usual way to do this
-	name.MustInput("Jorge").MustType(input.Tab)
+	name.MustInput("bot@icop").MustType(input.Tab)
 
 	pwd, err := p.Page.Element("#inputPassword")
 	if err != nil {
