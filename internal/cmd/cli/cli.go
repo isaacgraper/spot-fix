@@ -14,33 +14,33 @@ func Run() error {
 
 	app := &cli.App{
 		Name:  "Bot",
-		Usage: "Automate Bot - RPA",
+		Usage: "Automação de inconsistências de ponto - RPA",
 		Commands: []*cli.Command{
 			{
 				Name:  "exec",
-				Usage: "Execute the bot process",
+				Usage: "Executar o processamento do bot",
 				Flags: []cli.Flag{
 					&cli.IntFlag{
 						Name:  "max",
-						Usage: "Maximum number of results to process",
+						Usage: "Máximo de resultados para processar",
 						Value: 100,
 					},
 					&cli.StringFlag{
 						Name:  "hour",
-						Usage: "Set the hour for process",
+						Usage: "Defina um horário da inconsistência",
 					},
 					&cli.StringFlag{
 						Name:  "category",
-						Usage: "Set the category for process",
+						Usage: "Defina o tipo da inconsistência",
 					},
 					&cli.BoolFlag{
 						Name:  "filter",
-						Usage: "Enable filtering before the execution",
+						Usage: "Filtra pelo tipo de inconsistência primeiro",
 						Value: false,
 					},
 					&cli.IntFlag{
 						Name:  "batch",
-						Usage: "Batch size for process without filter",
+						Usage: "Define o tamanho do lote para processamento",
 						Value: 10,
 					},
 				},

@@ -106,7 +106,7 @@ func (p *Page) Pagination() bool {
 
 	p.Loading()
 
-	log.Println("[page] moved to the next page")
+	log.Println("[page] paginated to the next page")
 
 	p.Loading()
 
@@ -151,7 +151,7 @@ func (p *Page) Filter() error {
 		return fmt.Errorf("failed to apply filter: %w", err)
 	}
 
-	log.Println("[page] filter applied")
+	log.Println("[page] filter applied!")
 	return nil
 }
 
@@ -166,6 +166,8 @@ func (p *Page) DateFilter() error {
 	newDate := date.AddDate(0, 0, -7)
 
 	el.MustInputTime(newDate)
+
+	log.Printf("date: %s passed to the filter", newDate)
 	return nil
 }
 

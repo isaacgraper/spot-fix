@@ -43,6 +43,9 @@ func (pr *Process) ProcessResult(c *config.Config) {
 	if len(pr.Results) == 0 {
 		log.Println("[processor] no inconsistencies found")
 	} else {
+		// I can free memory here, because I depend the click function
+		// The slice is just for the file data, not the process itself
+		pr.Results = make([]report.ReportData, 0) // free
 		pr.EndProcess()
 	}
 }
@@ -79,7 +82,7 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 
 	// If I process inconsistencies in the Eval function, It will cause less memorie usage
 	// Or to know how many data I need before passing to the foreach, so I can pass it to
-	// make function and it will create a slice more concise
+	// make() function and it will create a slice more concise
 	for _, result := range results.Arr() {
 		index := result.Get("index").Int()
 		category := result.Get("category").String()
@@ -122,20 +125,22 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 
 func (pr *Process) ProcessFilter(c *config.Config) {
 	for {
-		if err := pr.page.Click(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`, false); err != nil {
+		if err := pr.page.ClickWithRetry(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`, 6); err != nil {
 			log.Printf("Failed to click filter checkbox: %v", err)
 			break
 		}
+
 		pr.page.Loading()
 
 		if pr.EndProcess() {
 			if pr.page.Pagination() {
-				log.Println("[processor] pagination started")
+				log.Println("[processor] page paginated...")
 				continue
 			}
 		} else {
 			break
 		}
+
 		pr.page.Loading()
 	}
 }

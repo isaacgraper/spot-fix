@@ -37,7 +37,6 @@ func (pr *Process) Execute(c *config.Config) error {
 		return err
 	}
 
-	// URL must not working as expected in my env file
 	pageInstance := browser.MustPage(os.Getenv("URL")).MustWaitLoad()
 
 	pr.page = &page.Page{
@@ -55,16 +54,16 @@ func (pr *Process) Execute(c *config.Config) error {
 	}
 
 	if c.Filter {
-		log.Println("[process] start processor with filter")
 		if err := pr.page.Filter(); err != nil {
 			log.Printf("filtering failed: %v", err)
 			return nil
 		}
+		log.Println("[process] starting processor with filter...")
 		pr.ProcessFilter(c)
 	}
 
 	if !c.Filter {
-		log.Println("[process] start processor with batch")
+		log.Println("[process] starting processor with batch...")
 		pr.ProcessHandler(c)
 	}
 	return nil

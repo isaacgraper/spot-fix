@@ -34,6 +34,6 @@ func (pr *Process) EndProcess() bool {
 	}
 	pr.page.Loading()
 
-	log.Println("[process] inconsistencies processed")
+	log.Println("[process] inconsistencies processed!")
 	return true
 }
