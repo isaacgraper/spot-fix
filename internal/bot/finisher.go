@@ -6,7 +6,7 @@ import (
 )
 
 func (pr *Process) EndProcess() bool {
-	pr.page.Page.MustElement(`td.ng-binding`).ScrollIntoView()
+	pr.page.Rod.MustElement(`td.ng-binding`).ScrollIntoView()
 
 	elements := []string{
 		`#content > div.app-content-body.nicescroll-continer > div.content-body > div.content-body-header > div.content-body-header-filters > div.filters-right > button`,
@@ -18,22 +18,31 @@ func (pr *Process) EndProcess() bool {
 	for _, selector := range elements {
 		time.Sleep(time.Millisecond * 250)
 
-		if err := pr.page.Click(selector, false); err != nil {
+		err := pr.page.Click(selector, false)
+		if err != nil {
 			log.Printf("Failed to click on %s: %v", selector, err)
 			return false
 		}
+
 		pr.page.Loading()
 	}
 
-	note := pr.page.Page.MustElement(`input#note`)
+	note := pr.page.Rod.MustElement(`input#note`)
+
 	note.MustInput("Cancelamento automático via bot")
 
-	if err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`, false); err != nil {
+	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`, false)
+
+	if err != nil {
 		log.Printf("Failed to click on submit button: %v", err)
 		return false
 	}
+
 	pr.page.Loading()
 
 	log.Println("[process] inconsistencies processed!")
+
 	return true
 }
+
+// Implement one more finisher for exec with filter

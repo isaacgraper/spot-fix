@@ -24,12 +24,12 @@ func (p *Page) Login(c *config.Credential) error {
 		return fmt.Errorf("password and username must be set in environment variables")
 	}
 
-	_ = proto.NetworkSetCacheDisabled{CacheDisabled: true}.Call(p.Page)
-	_ = proto.NetworkClearBrowserCache{}.Call(p.Page)
+	_ = proto.NetworkSetCacheDisabled{CacheDisabled: true}.Call(p.Rod)
+	_ = proto.NetworkClearBrowserCache{}.Call(p.Rod)
 
-	p.Page.Reload()
+	p.Rod.Reload()
 
-	name, err := p.Page.Element("#inputUsername")
+	name, err := p.Rod.Element("#inputUsername")
 	if err != nil {
 		log.Printf("Error finding element: %v\n", err)
 		return err
@@ -37,7 +37,7 @@ func (p *Page) Login(c *config.Credential) error {
 	// hardcode is not the usual way to do this
 	name.MustInput("Jorge").MustType(input.Tab)
 
-	pwd, err := p.Page.Element("#inputPassword")
+	pwd, err := p.Rod.Element("#inputPassword")
 	if err != nil {
 		log.Printf("Error finding element: %v\n", err)
 		return err

@@ -28,7 +28,7 @@ func NewProcess() *Process {
 func (pr *Process) Execute(c *config.Config) error {
 	path, _ := launcher.LookPath()
 	u := launcher.New().Bin(path).Headless(false).MustLaunch()
-	browser := rod.New().ControlURL(u).MustConnect().Trace(true)
+	browser := rod.New().ControlURL(u).MustConnect().Trace(false)
 
 	defer browser.MustClose()
 
@@ -40,7 +40,7 @@ func (pr *Process) Execute(c *config.Config) error {
 	pageInstance := browser.MustPage(os.Getenv("URL")).MustWaitLoad()
 
 	pr.page = &page.Page{
-		Page: pageInstance,
+		Rod: pageInstance,
 	}
 
 	if err := pr.page.Login(c.NewCredential()); err != nil {

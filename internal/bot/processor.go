@@ -53,7 +53,7 @@ func (pr *Process) ProcessResult(c *config.Config) {
 func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 	pr.page.Loading()
 
-	pr.page.Page.MustEval(`() => {
+	pr.page.Rod.MustEval(`() => {
         const elements = document.querySelectorAll("tr[data-id]");
         elements.forEach((el, index) => {
             el.id = "inconsistency-" + (index + 1);
@@ -62,7 +62,7 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 
 	pr.page.Loading()
 
-	results := pr.page.Page.MustEval(fmt.Sprintf(`() => {
+	results := pr.page.Rod.MustEval(fmt.Sprintf(`() => {
 	const results = [];
 		for (let i = %d; i <= %d; i++) {
 			const row = document.querySelector('#inconsistency-' + i);
@@ -125,7 +125,9 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 
 func (pr *Process) ProcessFilter(c *config.Config) {
 	for {
-		if err := pr.page.Click(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`, false); err != nil {
+		err := pr.page.ClickWithRetry(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`, 6)
+
+		if err != nil {
 			log.Printf("failed to click filter checkbox: %v", err)
 			break
 		}

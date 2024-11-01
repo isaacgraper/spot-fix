@@ -9,7 +9,7 @@ func (p *Page) NavigateToInconsistencies() error {
 		return nil
 	}
 
-	p.Page.MustEval(`() => document.querySelector("div.app-content-body.nicescroll-continer > div.content-body > div.content-body-header > div.content-body-header-filters > div.filters-right > div > div > ul > li:nth-child(4) > a").id = "hundred-lines"`)
+	p.Rod.MustEval(`() => document.querySelector("div.app-content-body.nicescroll-continer > div.content-body > div.content-body-header > div.content-body-header-filters > div.filters-right > div > div > ul > li:nth-child(4) > a").id = "hundred-lines"`)
 
 	if err := p.Click(`#hundred-lines`, false); err != nil {
 		return nil

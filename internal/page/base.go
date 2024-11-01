@@ -3,6 +3,7 @@ package page
 import (
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -11,12 +12,12 @@ import (
 )
 
 type Page struct {
-	Page *rod.Page
+	Rod *rod.Page
 }
 
 func (p *Page) Click(selector string, screenshot bool) error {
 	err := rod.Try(func() {
-		element, err := p.Page.Element(selector)
+		element, err := p.Rod.Element(selector)
 		if err != nil {
 			log.Printf("Element not found: %s", selector)
 			return
@@ -33,7 +34,7 @@ func (p *Page) Click(selector string, screenshot bool) error {
 		time.Sleep(time.Millisecond * 200)
 
 		if screenshot {
-			p.Page.MustScreenshot(fmt.Sprintf("screenshot_%d.png", time.Now().Unix()))
+			p.Rod.MustScreenshot(fmt.Sprintf("screenshot_%d.png", time.Now().Unix()))
 		}
 	})
 
@@ -44,7 +45,7 @@ func (p *Page) ClickWithRetry(selector string, maxRetries int) error {
 	var err error
 	for i := 0; i < maxRetries; i++ {
 		err = rod.Try(func() {
-			element, err := p.Page.Timeout(250 * time.Millisecond).Element(selector)
+			element, err := p.Rod.Timeout(250 * time.Millisecond).Element(selector)
 			if err != nil {
 				log.Printf("Element not found: %s", selector)
 				return
@@ -69,7 +70,7 @@ func (p *Page) ClickWithRetry(selector string, maxRetries int) error {
 }
 
 func (p *Page) AddElementId(selector, id string) {
-	p.Page.Eval(fmt.Sprintf(`() => {
+	p.Rod.Eval(fmt.Sprintf(`() => {
 		const el = %s;
 		if (el) {
 		el.id = "%s";
@@ -81,7 +82,7 @@ func (p *Page) AddElementId(selector, id string) {
 }
 
 func (p *Page) ScrollToElement(selector string) {
-	p.Page.Eval(fmt.Sprintf(`() => {
+	p.Rod.Eval(fmt.Sprintf(`() => {
 		const element = document.querySelector('%s');
 		if (element) {
 			element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -93,7 +94,7 @@ func (p *Page) ScrollToElement(selector string) {
 }
 
 func (p *Page) Pagination() bool {
-	hasNextPage := p.Page.MustHas(`[ng-click="changePage('next')"]`)
+	hasNextPage := p.Rod.MustHas(`[ng-click="changePage('next')"]`)
 	if !hasNextPage {
 		return false
 	}
@@ -118,7 +119,7 @@ func (p *Page) Filter() (bool, error) {
 		return false, fmt.Errorf("failed to click inconsistencies filter: %w", err)
 	}
 
-	element, err := p.Page.Element(`select#clockingTypes`)
+	element, err := p.Rod.Element(`select#clockingTypes`)
 	if err != nil {
 		return false, fmt.Errorf("failed to find clocking types element: %w", err)
 	}
@@ -143,13 +144,13 @@ func (p *Page) Filter() (bool, error) {
 		return false, fmt.Errorf("failed to click selected option: %w", err)
 	}
 
-	ok, err := p.DateFilter()
+	date, ok, err := p.DateFilter()
 	if err != nil {
 		return false, fmt.Errorf("failed to apply a date filter: %w", err)
 	}
 
 	if !ok {
-		log.Println("[page] filter not applied, date is not 1 week ago")
+		log.Println("[page] filter not applied")
 		return false, nil
 	}
 
@@ -158,55 +159,54 @@ func (p *Page) Filter() (bool, error) {
 	}
 
 	log.Println("[page] filter applied!")
+
+	if !p.CheckDateFilter(date) {
+		return false, fmt.Errorf("failed")
+	}
+
 	return true, nil
 }
 
-func (p *Page) DateFilter() (bool, error) {
-	el, err := p.Page.Element("input[name=\"finishDate\"]")
+func (p *Page) DateFilter() (string, bool, error) {
+	el, err := p.Rod.Element("input[name=\"finishDate\"]")
 	if err != nil {
 		log.Printf("Error finding element: %v\n", err)
-		return false, err
+		return " ", false, err
 	}
 
 	date := time.Now()
 	newDate := date.AddDate(0, 0, -7)
 
-	if !p.CheckDateFilter(newDate.Format("02-01-2006")) {
-		return false, nil
-	} else {
-		el.MustInputTime(newDate)
-	}
+	el.MustInputTime(newDate)
+
+	p.Loading()
 
 	log.Printf("[page] date: %s passed to the filter", newDate.Format("02-01-2006"))
-	return true, nil
+	return newDate.Format("02-01-2006"), true, nil
 }
 
 func (p *Page) CheckDateFilter(dateFilter string) bool {
-	p.Page.MustEval(`() => document.querySelectorAll("tr[data-id] > td.ng-binding:nth-child(5)")[0].id = "inconsistency-date"`)
+	p.Rod.MustEval(`() => document.querySelectorAll("tr[data-id] > td.ng-binding:nth-child(6)")[0].id = "i-date"`)
 
-	log.Println("[page] evaluating inconsistency-date")
+	date := p.Rod.MustElement("td#i-date.ng-binding").MustText()
 
-	el := p.Page.MustElement("td#inconsistency-date.ng-binding")
-	log.Println("Element text:", el.MustText())
-	log.Println("Element HTML:", el.MustHTML())
-	log.Println("Element attributes:", el.MustAttribute("id"), el.MustAttribute("class"))
+	dateSplit := strings.Split(date, " ")
+	date = strings.TrimSpace(dateSplit[0])
 
-	date := p.Page.MustElement("td#inconsistency-date.ng-binding").MustText()
-	log.Println("Data:", date)
+	dateTime, err := time.Parse("02/01/2006", date)
+	if err != nil {
+		return false
+	}
 
-	// dateSplit := strings.Split(date, " ")
-	// date = strings.TrimSpace(dateSplit[0])
+	log.Println(dateTime.Format("02-01-2006"))
+	log.Println(dateFilter)
 
-	// log.Println(dateFilter)
-	// log.Println(date)
-
-	// if dateFilter != date {
-	// 	log.Println("[page] date rejected by the CheckDateFilter func")
-	// 	return false
-	// }
-	return false // true
+	if dateFilter != dateTime.Format("02-01-2006") {
+		return false
+	}
+	return true
 }
 
 func (p *Page) Loading() {
-	p.Page.MustWaitLoad().MustWaitStable().MustWaitDOMStable()
+	p.Rod.MustWaitLoad().MustWaitStable().MustWaitDOMStable()
 }
