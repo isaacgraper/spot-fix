@@ -113,20 +113,20 @@ func (p *Page) Pagination() bool {
 	return true
 }
 
-func (p *Page) Filter() error {
+func (p *Page) Filter() (bool, error) {
 	if err := p.Click(`#inconsistenciesFilter`, false); err != nil {
-		return fmt.Errorf("failed to click inconsistencies filter: %w", err)
+		return false, fmt.Errorf("failed to click inconsistencies filter: %w", err)
 	}
 
 	element, err := p.Page.Element(`select#clockingTypes`)
 	if err != nil {
-		return fmt.Errorf("failed to find clocking types element: %w", err)
+		return false, fmt.Errorf("failed to find clocking types element: %w", err)
 	}
 
 	element.MustWaitStable()
 
 	if err := p.Click(`#clockingTypes`, false); err != nil {
-		return fmt.Errorf("failed to click clocking types: %w", err)
+		return false, fmt.Errorf("failed to click clocking types: %w", err)
 	}
 
 	p.Loading()
@@ -135,40 +135,76 @@ func (p *Page) Filter() error {
 
 	err = element.Type(input.ArrowDown)
 	if err != nil {
-		return fmt.Errorf("failed to type arrow down: %w", err)
+		return false, fmt.Errorf("failed to type arrow down: %w", err)
 	}
 
 	err = element.Click(proto.InputMouseButtonLeft, 1)
 	if err != nil {
-		return fmt.Errorf("failed to click selected option: %w", err)
+		return false, fmt.Errorf("failed to click selected option: %w", err)
 	}
 
-	if err := p.DateFilter(); err != nil {
-		return fmt.Errorf("failed to apply a date filter: %w", err)
+	ok, err := p.DateFilter()
+	if err != nil {
+		return false, fmt.Errorf("failed to apply a date filter: %w", err)
+	}
+
+	if !ok {
+		log.Println("[page] filter not applied, date is not 1 week ago")
+		return false, nil
 	}
 
 	if err := p.Click(`#app > searchfilterinconsistencies > div > div.row.overscreen_child > div.filter_container > div.hbox.filter_button.ng-scope > a.btn.button_link.btn-dark.ng-binding`, false); err != nil {
-		return fmt.Errorf("failed to apply filter: %w", err)
+		return false, fmt.Errorf("failed to apply filter: %w", err)
 	}
 
 	log.Println("[page] filter applied!")
-	return nil
+	return true, nil
 }
 
-func (p *Page) DateFilter() error {
+func (p *Page) DateFilter() (bool, error) {
 	el, err := p.Page.Element("input[name=\"finishDate\"]")
 	if err != nil {
 		log.Printf("Error finding element: %v\n", err)
-		return err
+		return false, err
 	}
 
 	date := time.Now()
 	newDate := date.AddDate(0, 0, -7)
 
-	el.MustInputTime(newDate)
+	if !p.CheckDateFilter(newDate.Format("02-01-2006")) {
+		return false, nil
+	} else {
+		el.MustInputTime(newDate)
+	}
 
 	log.Printf("[page] date: %s passed to the filter", newDate.Format("02-01-2006"))
-	return nil
+	return true, nil
+}
+
+func (p *Page) CheckDateFilter(dateFilter string) bool {
+	p.Page.MustEval(`() => document.querySelectorAll("tr[data-id] > td.ng-binding:nth-child(5)")[0].id = "inconsistency-date"`)
+
+	log.Println("[page] evaluating inconsistency-date")
+
+	el := p.Page.MustElement("td#inconsistency-date.ng-binding")
+	log.Println("Element text:", el.MustText())
+	log.Println("Element HTML:", el.MustHTML())
+	log.Println("Element attributes:", el.MustAttribute("id"), el.MustAttribute("class"))
+
+	date := p.Page.MustElement("td#inconsistency-date.ng-binding").MustText()
+	log.Println("Data:", date)
+
+	// dateSplit := strings.Split(date, " ")
+	// date = strings.TrimSpace(dateSplit[0])
+
+	// log.Println(dateFilter)
+	// log.Println(date)
+
+	// if dateFilter != date {
+	// 	log.Println("[page] date rejected by the CheckDateFilter func")
+	// 	return false
+	// }
+	return false // true
 }
 
 func (p *Page) Loading() {

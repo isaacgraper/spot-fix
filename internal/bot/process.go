@@ -28,7 +28,7 @@ func NewProcess() *Process {
 func (pr *Process) Execute(c *config.Config) error {
 	path, _ := launcher.LookPath()
 	u := launcher.New().Bin(path).Headless(false).MustLaunch()
-	browser := rod.New().ControlURL(u).MustConnect()
+	browser := rod.New().ControlURL(u).MustConnect().Trace(true)
 
 	defer browser.MustClose()
 
@@ -54,10 +54,16 @@ func (pr *Process) Execute(c *config.Config) error {
 	}
 
 	if c.Filter {
-		if err := pr.page.Filter(); err != nil {
-			log.Printf("filtering failed: %v", err)
+		ok, err := pr.page.Filter()
+		if err != nil {
 			return nil
 		}
+		if !ok {
+			log.Println("[process] filtering failed")
+			log.Println("[process] ending process with filter...")
+			return nil
+		}
+
 		log.Println("[process] starting processor with filter...")
 		pr.ProcessFilter(c)
 	}

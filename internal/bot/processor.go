@@ -126,7 +126,7 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 func (pr *Process) ProcessFilter(c *config.Config) {
 	for {
 		if err := pr.page.Click(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`, false); err != nil {
-			log.Printf("Failed to click filter checkbox: %v", err)
+			log.Printf("failed to click filter checkbox: %v", err)
 			break
 		}
 

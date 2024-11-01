@@ -17,10 +17,5 @@ func (p *Page) NavigateToInconsistencies() error {
 
 	p.Loading()
 
-	has, _, _ := p.Page.Has(`document.querySelector('.beamerAnnouncementSnippet')`)
-	if !has {
-		p.Page.MustEval(`() => document.querySelector('.beamerAnnouncementSnippet').style.display="none"`)
-	}
-
 	return nil
 }
