@@ -1,21 +1,24 @@
 package page
 
-// func (p *Page) Pagination() bool {
-// 	hasNextPage := p.Rod.MustHas(selectorNextPage)
-// 	if !hasNextPage {
-// 		return false
-// 	}
+func (p *Page) Pagination() bool {
+	hasNextPage := p.Rod.MustHas(`[ng-click="changePage('next')"]`)
+	if !hasNextPage {
+		return false
+	}
 
-// 	p.Loading()
+	p.Loading()
 
-// 	err := p.ClickWithRetry(selectorNextPage, 6)
-// 	if err != nil {
-// 		return false
-// 	}
+	err := p.Click(`[ng-click="changePage('next')"]`)
+	if err != nil {
+		p.logger.Println("[pagination] error while trying to click in the element")
+		return false
+	}
 
-// 	p.Loading()
+	p.Loading()
 
-// 	log.Println("[page] paginated to the next page")
+	p.logger.Println("[pagination] paginated to the next page")
 
-// 	return true
-// }
+	p.Loading()
+
+	return true
+}

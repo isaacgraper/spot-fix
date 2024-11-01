@@ -16,11 +16,11 @@ func (pr *Process) EndProcess() bool {
 	}
 
 	for _, selector := range elements {
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(200 * time.Millisecond)
 
-		err := pr.page.Click(selector, false)
+		err := pr.page.Click(selector)
 		if err != nil {
-			log.Printf("Failed to click on %s: %v", selector, err)
+			log.Printf("[finisher] failed to click on %s: %v", selector, err)
 			return false
 		}
 
@@ -31,16 +31,15 @@ func (pr *Process) EndProcess() bool {
 
 	note.MustInput("Cancelamento automático via bot")
 
-	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`, false)
-
+	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`)
 	if err != nil {
-		log.Printf("Failed to click on submit button: %v", err)
+		log.Printf("[finisher] failed to click on submit button: %v", err)
 		return false
 	}
 
 	pr.page.Loading()
 
-	log.Println("[process] inconsistencies processed!")
+	log.Println("[finisher] inconsistencies processed!")
 
 	return true
 }

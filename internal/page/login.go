@@ -12,8 +12,9 @@ import (
 )
 
 func (p *Page) Login(c *config.Credential) error {
-	if err := godotenv.Load(); err != nil {
-		log.Println("error loading .env file:", err)
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("[login] error loading .env file:", err)
 		return err
 	}
 
@@ -21,7 +22,7 @@ func (p *Page) Login(c *config.Credential) error {
 	c.Password = os.Getenv("PASSWORD")
 
 	if c.Username == "" || c.Password == "" {
-		return fmt.Errorf("password and username must be set in environment variables")
+		return fmt.Errorf("[login] password and username must be set in environment variables")
 	}
 
 	_ = proto.NetworkSetCacheDisabled{CacheDisabled: true}.Call(p.Rod)
@@ -31,22 +32,23 @@ func (p *Page) Login(c *config.Credential) error {
 
 	name, err := p.Rod.Element("#inputUsername")
 	if err != nil {
-		log.Printf("Error finding element: %v\n", err)
+		log.Printf("[login] error finding element: %v\n", err)
 		return err
 	}
-	// hardcode is not the usual way to do this
+
 	name.MustInput("Jorge").MustType(input.Tab)
 
 	pwd, err := p.Rod.Element("#inputPassword")
 	if err != nil {
-		log.Printf("Error finding element: %v\n", err)
+		log.Printf("[login] error finding element: %v\n", err)
 		return err
 	}
+
 	pwd.MustInput(c.Password).MustType(input.Enter)
 
 	p.Loading()
 
-	log.Println("[login] bot logged in successfully")
+	log.Println("[login] bot logged in successfully!")
 
 	return nil
 }
