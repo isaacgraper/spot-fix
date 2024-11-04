@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/isaacgraper/spotfix.git/internal/bot"
@@ -20,22 +20,9 @@ func Run() error {
 				Name:  "exec",
 				Usage: "Executar o processamento do bot",
 				Flags: []cli.Flag{
-					&cli.IntFlag{
-						Name:  "max",
-						Usage: "Máximo de resultados para processar",
-						Value: 100,
-					},
-					&cli.StringFlag{
-						Name:  "hour",
-						Usage: "Defina um horário da inconsistência",
-					},
-					&cli.StringFlag{
-						Name:  "category",
-						Usage: "Defina o tipo da inconsistência",
-					},
 					&cli.BoolFlag{
-						Name:  "filter",
-						Usage: "Filtra pelo tipo de inconsistência primeiro",
+						Name:  "processBatch",
+						Usage: "Processamento por batch",
 						Value: false,
 					},
 					&cli.IntFlag{
@@ -43,18 +30,43 @@ func Run() error {
 						Usage: "Define o tamanho do lote para processamento",
 						Value: 10,
 					},
+					&cli.IntFlag{
+						Name:  "max",
+						Usage: "Máximo de resultados para processar",
+						Value: 100,
+					},
+					&cli.StringFlag{
+						Name:  "hour",
+						Usage: "Defina o horário da inconsistência",
+					},
+					&cli.StringFlag{
+						Name:  "category",
+						Usage: "Defina o tipo da inconsistência",
+					},
+					&cli.BoolFlag{
+						Name:  "notRegistered",
+						Usage: "Processamento por filtro em Não Registrado",
+						Value: false,
+					},
+					&cli.BoolFlag{
+						Name:  "workSchedule",
+						Usage: "Processamento por filtro com Erro de Escala",
+						Value: false,
+					},
 				},
 				Action: func(ctx *cli.Context) error {
 					config := config.Set(
+						ctx.Bool("processBatch"),
+						ctx.Int("batch"),
+						ctx.Int("max"),
 						ctx.String("hour"),
 						ctx.String("category"),
-						ctx.Bool("filter"),
-						ctx.Int("max"),
-						ctx.Int("batch"),
+						ctx.Bool("notRegistered"),
+						ctx.Bool("workSchedule"),
 					)
 
 					if err := process.Execute(config); err != nil {
-						log.Fatalf("error while trying to start the bot: %v", err)
+						return fmt.Errorf("[cli] error while trying to start the bot: %w", err)
 					}
 					return nil
 				},

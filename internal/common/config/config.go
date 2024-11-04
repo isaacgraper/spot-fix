@@ -1,19 +1,23 @@
 package config
 
 type Config struct {
-	Hour      string
-	Category  string
-	Filter    bool
-	Max       int
-	BatchSize int
+	ProcessBatch  bool
+	Batch         int
+	Max           int
+	Hour          string
+	Category      string
+	NotRegistered bool
+	WorkSchedule  bool
 }
 
-func Set(hour, category string, filter bool, max int, batchSize int) *Config {
+func Set(ProcessBatch bool, batch, max int, hour, category string, notRegistered, workSchedule bool) *Config {
 	return &Config{
-		Hour:      hour,
-		Category:  category,
-		Filter:    filter,
-		Max:       max,
-		BatchSize: batchSize,
+		ProcessBatch:  ProcessBatch,
+		Batch:         batch,
+		Max:           max,
+		Hour:          hour,
+		Category:      category,
+		NotRegistered: notRegistered,
+		WorkSchedule:  workSchedule,
 	}
 }

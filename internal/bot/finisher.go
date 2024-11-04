@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-func (pr *Process) EndProcess() bool {
+func (pr *Process) Finisher(note string) bool {
 	pr.page.Rod.MustElement(`td.ng-binding`).ScrollIntoView()
 
 	elements := []string{
@@ -27,9 +27,9 @@ func (pr *Process) EndProcess() bool {
 		pr.page.Loading()
 	}
 
-	note := pr.page.Rod.MustElement(`input#note`)
+	noteEl := pr.page.Rod.MustElement(`input#note`)
 
-	note.MustInput("Cancelamento automático via bot")
+	noteEl.MustInput(note)
 
 	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`)
 	if err != nil {
@@ -43,5 +43,3 @@ func (pr *Process) EndProcess() bool {
 
 	return true
 }
-
-// Implement one more finisher for exec with filter

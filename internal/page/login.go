@@ -14,8 +14,7 @@ import (
 func (p *Page) Login(c *config.Credential) error {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("[login] error loading .env file:", err)
-		return err
+		return fmt.Errorf("[login] error loading .env file: %w", err)
 	}
 
 	c.Username = os.Getenv("USERNAME")
