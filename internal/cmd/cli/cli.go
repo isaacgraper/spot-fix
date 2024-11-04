@@ -37,20 +37,20 @@ func Run() error {
 					},
 					&cli.StringFlag{
 						Name:  "hour",
-						Usage: "Defina o horário da inconsistência",
+						Usage: "Define o horário da inconsistência",
 					},
 					&cli.StringFlag{
 						Name:  "category",
-						Usage: "Defina o tipo da inconsistência",
+						Usage: "Define o tipo da inconsistência",
 					},
 					&cli.BoolFlag{
 						Name:  "notRegistered",
-						Usage: "Processamento por filtro em Não Registrado",
+						Usage: "Processamento por filtro nas inconsistências como \"Não Registrado\"",
 						Value: false,
 					},
 					&cli.BoolFlag{
 						Name:  "workSchedule",
-						Usage: "Processamento por filtro com Erro de Escala",
+						Usage: "Processamento por filtro para Erros de Escala",
 						Value: false,
 					},
 				},

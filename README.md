@@ -12,7 +12,7 @@ cd spotfix
 
 go build -a -o bot
 
-./bot exec -h
+./bot exec --help
 ```
 
 
