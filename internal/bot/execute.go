@@ -39,7 +39,7 @@ func (pr *Process) Execute(c *config.Config) error {
 	browser := rod.New().
 		ControlURL(u).
 		MustConnect().
-		Trace(false)
+		Trace(true)
 
 	defer browser.MustClose()
 
@@ -81,9 +81,15 @@ func (pr *Process) Execute(c *config.Config) error {
 	}
 
 	if c.WorkSchedule {
-		err := filter.FilterWorkSchedule(pr.page)
+		ok, err := filter.FilterWorkSchedule(pr.page)
 		if err != nil {
 			return fmt.Errorf("[execute] error while trying to filter: %w", err)
+		}
+
+		if !ok {
+			log.Println("[execute] filtering failed")
+			log.Println("[execute] ending process with filter...")
+			return nil
 		}
 
 		log.Println("[execute] starting process with workSchedule filter...")

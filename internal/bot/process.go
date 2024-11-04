@@ -43,7 +43,7 @@ func (pr *Process) ProcessResult(c *config.Config) {
 		log.Println("[processor] no inconsistencies found")
 	} else {
 		pr.Results = make([]report.ReportData, 0)
-		pr.Finisher("Cancelamento automático via Bot")
+		pr.CompleteBatch("Cancelamento automático via Bot")
 	}
 }
 
@@ -125,7 +125,7 @@ func (pr *Process) ProcessNotRegistered() error {
 
 		pr.page.Loading()
 
-		if pr.Finisher("Cancelamento automático via Bot: Não registrados") {
+		if pr.CompleteNotRegistered("Cancelamento automático via Bot: Não registrados") {
 			if pr.page.Pagination() {
 				log.Println("[processor] page paginated...")
 				continue
@@ -150,7 +150,7 @@ func (pr *Process) ProcessWorkSchedule() error {
 
 		pr.page.Loading()
 
-		if pr.Finisher("Cancelamento automático via Bot: Erros de escala") {
+		if pr.CompleteWorkSchedule("Cancelamento automático via Bot: Erros de escala") {
 			if pr.page.Pagination() {
 				log.Println("[processor] page paginated...")
 				continue
