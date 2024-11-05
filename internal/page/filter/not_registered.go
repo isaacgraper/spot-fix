@@ -87,8 +87,6 @@ func ApplyDateFilter(p *page.Page) (string, error) {
 
 	p.Loading()
 
-	log.Printf("[filter] date: %s has been passed to the filter", newDate.Format("02-01-2006"))
-
 	return newDate.Format("02-01-2006"), nil
 }
 
