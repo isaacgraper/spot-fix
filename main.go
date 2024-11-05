@@ -8,6 +8,6 @@ import (
 
 func main() {
 	if err := cmd.Run(); err != nil {
-		log.Printf("Error while trying to run bot: %v", err)
+		log.Printf("[cli] error while trying to run bot: %v", err)
 	}
 }
