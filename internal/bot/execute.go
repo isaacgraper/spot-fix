@@ -39,7 +39,7 @@ func (pr *Process) Execute(c *config.Config) error {
 	browser := rod.New().
 		ControlURL(u).
 		MustConnect().
-		Trace(false)
+		Trace(true)
 
 	defer browser.MustClose()
 

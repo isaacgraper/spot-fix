@@ -29,6 +29,8 @@ func (p *Page) Login(c *config.Credential) error {
 
 	p.Rod.Reload()
 
+	p.Loading()
+
 	name, err := p.Rod.Element("#inputUsername")
 	if err != nil {
 		log.Printf("[login] error finding element: %v\n", err)

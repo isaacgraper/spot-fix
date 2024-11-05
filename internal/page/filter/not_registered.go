@@ -52,7 +52,11 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 		return false, nil
 	}
 
-	validate, _ := ValidateDataNotRegistered(p)
+	validate, err := ValidateDataNotRegistered(p)
+
+	if err != nil {
+		return false, fmt.Errorf("[filter] error while trying to check if data was not found: %w", err)
+	}
 
 	if validate {
 		log.Println("[filter] no inconsistencies found")
@@ -109,13 +113,21 @@ func ValidateDateFilter(dateFilter string, p *page.Page) (bool, error) {
 }
 
 func ValidateDataNotRegistered(p *page.Page) (bool, error) {
-	has, el, err := p.Rod.Has("td>p")
-	if !has {
-		return false, fmt.Errorf("[filter] element: %s must not exist", el)
-	}
+	has := p.Rod.MustHas("td>p")
+	if has {
+		el, err := p.Rod.Element("td>p")
 
-	if err != nil {
-		return false, fmt.Errorf("[filter] error trying to find element: %w", err)
+		if err != nil {
+			return false, fmt.Errorf("[filter] error while trying to get element: %w", err)
+		}
+
+		if el == nil {
+			return false, nil
+		}
+
+		if el.MustText() == "Nenhum registro encontrado" {
+			return true, nil
+		}
 	}
-	return el.MustText() == "Nenhum registro encontrado", nil
+	return false, nil
 }

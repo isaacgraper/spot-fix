@@ -32,7 +32,11 @@ func FilterWorkSchedule(p *page.Page) (bool, error) {
 		return false, fmt.Errorf("[filter] error while trying to click into filter: %w", err)
 	}
 
-	validate, _ := ValidateDataWorkSchedule(p)
+	validate, err := ValidateDataWorkSchedule(p)
+
+	if err != nil {
+		return false, fmt.Errorf("[filter] error while trying to check if data was not found: %w", err)
+	}
 
 	if validate {
 		log.Println("[filter] no inconsistencies found")
@@ -53,13 +57,21 @@ func ApplyFilterWorkSchedule(element *rod.Element) error {
 }
 
 func ValidateDataWorkSchedule(p *page.Page) (bool, error) {
-	has, el, err := p.Rod.Has("td>p")
-	if !has {
-		return false, fmt.Errorf("[filter] element must not exist")
-	}
+	has := p.Rod.MustHas("td>p")
+	if has {
+		el, err := p.Rod.Element("td>p")
 
-	if err != nil {
-		return false, fmt.Errorf("[filter] error trying to find element")
+		if err != nil {
+			return false, fmt.Errorf("[filter] error while trying to get element: %w", err)
+		}
+
+		if el == nil {
+			return false, nil
+		}
+
+		if el.MustText() == "Nenhum registro encontrado" {
+			return true, nil
+		}
 	}
-	return el.MustText() == "Nenhum registro encontrado", nil
+	return false, nil
 }
