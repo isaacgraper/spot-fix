@@ -9,16 +9,22 @@ import (
 	"github.com/isaacgraper/spotfix.git/internal/report"
 )
 
-func (pr *Process) ProcessHandler(c *config.Config) (error, bool) {
+func (pr *Process) ProcessHandler(c *config.Config) (bool, error) {
 	for {
 		pr.ProcessResult(c)
 
-		if !pr.page.Pagination() {
-			log.Println("[processor] no more pages to process")
+		pagination, err := pr.page.Pagination()
+
+		if err != nil {
+			return false, fmt.Errorf("[process] error while trying to paginate: %w", err)
+		}
+
+		if !pagination {
+			log.Panic("[process] no more pages to process")
 			break
 		}
 	}
-	return nil, true
+	return true, nil
 }
 
 func (pr *Process) ProcessResult(c *config.Config) {
@@ -125,12 +131,24 @@ func (pr *Process) ProcessNotRegistered() error {
 
 		pr.page.Loading()
 
-		if pr.CompleteNotRegistered("Cancelamento automático via Bot: Não registrados") {
-			if pr.page.Pagination() {
-				log.Println("[processor] page paginated...")
+		complete, err := pr.CompleteNotRegistered("Cancelamento automático via Bot: Não Registrado")
+		if err != nil {
+			return fmt.Errorf("[process] error while trying to complete workSchedule process %w", err)
+		}
+
+		if complete {
+			pagination, err := pr.page.Pagination()
+			if err != nil {
+				return fmt.Errorf("[process] error while tring to paginate")
+			}
+
+			if pagination {
+				log.Println("[process] page paginated...")
 				continue
 			}
+
 		} else {
+			log.Panicf("[process] error ocurred while trying to process and paginated workSchedule...")
 			break
 		}
 
@@ -150,12 +168,24 @@ func (pr *Process) ProcessWorkSchedule() error {
 
 		pr.page.Loading()
 
-		if pr.CompleteWorkSchedule("Cancelamento automático via Bot: Erros de escala") {
-			if pr.page.Pagination() {
-				log.Println("[processor] page paginated...")
+		complete, err := pr.CompleteWorkSchedule("Cancelamento automático via Bot: Erros de escala")
+		if err != nil {
+			return fmt.Errorf("[process] error while trying to complete workSchedule process %w", err)
+		}
+
+		if complete {
+			pagination, err := pr.page.Pagination()
+			if err != nil {
+				return fmt.Errorf("[process] error while trying to paginate")
+			}
+
+			if pagination {
+				log.Println("[process] page paginated...")
 				continue
 			}
+
 		} else {
+			log.Panicf("[process] error ocurred while trying to process and paginated workSchedule...")
 			break
 		}
 

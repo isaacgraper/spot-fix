@@ -1,19 +1,21 @@
 package page
 
-import "log"
+import (
+	"fmt"
+	"log"
+)
 
-func (p *Page) Pagination() bool {
+func (p *Page) Pagination() (bool, error) {
 	hasNextPage := p.Rod.MustHas(`[ng-click="changePage('next')"]`)
 	if !hasNextPage {
-		return false
+		return false, fmt.Errorf("[pagination] error element was not found")
 	}
 
 	p.Loading()
 
 	err := p.Click(`[ng-click="changePage('next')"]`)
 	if err != nil {
-		log.Println("[pagination] error while trying to click in the element")
-		return false
+		return false, fmt.Errorf("[pagination] error while trying to click into element: %w", err)
 	}
 
 	p.Loading()
@@ -22,5 +24,5 @@ func (p *Page) Pagination() bool {
 
 	p.Loading()
 
-	return true
+	return true, nil
 }

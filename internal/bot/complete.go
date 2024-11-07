@@ -1,11 +1,12 @@
 package bot
 
 import (
+	"fmt"
 	"log"
 	"time"
 )
 
-func (pr *Process) CompleteNotRegistered(note string) bool {
+func (pr *Process) CompleteNotRegistered(note string) (bool, error) {
 	pr.page.Rod.MustElement(`td.ng-binding`).ScrollIntoView()
 
 	elements := []string{
@@ -20,8 +21,7 @@ func (pr *Process) CompleteNotRegistered(note string) bool {
 
 		err := pr.page.Click(selector)
 		if err != nil {
-			log.Printf("[finisher] failed to click on %s: %v", selector, err)
-			return false
+			return false, fmt.Errorf("[complete] failed to click on %s: %w", selector, err)
 		}
 
 		pr.page.Loading()
@@ -33,18 +33,17 @@ func (pr *Process) CompleteNotRegistered(note string) bool {
 
 	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`)
 	if err != nil {
-		log.Printf("[finisher] failed to click on submit button: %v", err)
-		return false
+		return false, fmt.Errorf("[finisher] failed to click on submit button: %w", err)
 	}
 
 	pr.page.Loading()
 
 	log.Println("[finisher] inconsistencies processed!")
 
-	return true
+	return true, nil
 }
 
-func (pr *Process) CompleteWorkSchedule(note string) bool {
+func (pr *Process) CompleteWorkSchedule(note string) (bool, error) {
 	pr.page.Rod.MustElement(`td.ng-binding`).ScrollIntoView()
 
 	elements := []string{
@@ -58,8 +57,7 @@ func (pr *Process) CompleteWorkSchedule(note string) bool {
 
 		err := pr.page.Click(selector)
 		if err != nil {
-			log.Printf("[finisher] failed to click on %s: %v", selector, err)
-			return false
+			return false, fmt.Errorf("[complete] failed to click on %s: %w", selector, err)
 		}
 
 		pr.page.Loading()
@@ -71,18 +69,17 @@ func (pr *Process) CompleteWorkSchedule(note string) bool {
 
 	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`)
 	if err != nil {
-		log.Printf("[finisher] failed to click on submit button: %v", err)
-		return false
+		return false, fmt.Errorf("[complete] failed to click on submit button: %w", err)
 	}
 
 	pr.page.Loading()
 
-	log.Println("[finisher] inconsistencies processed!")
+	log.Println("[complete] inconsistencies processed!")
 
-	return true
+	return true, nil
 }
 
-func (pr *Process) CompleteBatch(note string) bool {
+func (pr *Process) CompleteBatch(note string) (bool, error) {
 	pr.page.Rod.MustElement(`td.ng-binding`).ScrollIntoView()
 
 	elements := []string{
@@ -97,8 +94,7 @@ func (pr *Process) CompleteBatch(note string) bool {
 
 		err := pr.page.Click(selector)
 		if err != nil {
-			log.Printf("[finisher] failed to click on %s: %v", selector, err)
-			return false
+			return false, fmt.Errorf("[complete] failed to click on %s: %w", selector, err)
 		}
 
 		pr.page.Loading()
@@ -110,13 +106,12 @@ func (pr *Process) CompleteBatch(note string) bool {
 
 	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`)
 	if err != nil {
-		log.Printf("[finisher] failed to click on submit button: %v", err)
-		return false
+		return false, fmt.Errorf("[complete] failed to click on submit button: %w", err)
 	}
 
 	pr.page.Loading()
 
-	log.Println("[finisher] inconsistencies processed!")
+	log.Println("[complete] inconsistencies processed!")
 
-	return true
+	return true, nil
 }
