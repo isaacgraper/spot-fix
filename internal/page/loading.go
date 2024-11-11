@@ -1,5 +1,5 @@
 package page
 
 func (p *Page) Loading() {
-	p.Rod.MustWaitLoad().MustWaitStable().MustWaitDOMStable()
+	p.Rod.MustWaitLoad().MustWaitStable().MustWaitDOMStable().MustWaitIdle()
 }

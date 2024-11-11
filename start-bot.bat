@@ -8,7 +8,7 @@ echo Starting the bot tasks!
 echo.
 echo Starting the bot executable...
     
-"%BOT_EXEC%" exec --notRegistered
+start bot.exe exec --notRegistered
 if %errorlevel% equ 0 (
     echo Bot process completed successfully with the first instruction.
     echo.

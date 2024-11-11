@@ -3,6 +3,7 @@ package filter
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/go-rod/rod"
 	"github.com/isaacgraper/spotfix.git/internal/page"
@@ -31,6 +32,8 @@ func FilterWorkSchedule(p *page.Page) (bool, error) {
 	if err := p.Click("#filter-btn"); err != nil {
 		return false, fmt.Errorf("[filter] error while trying to click into filter: %w", err)
 	}
+
+	time.Sleep(time.Second * 15)
 
 	validate, err := ValidateDataWorkSchedule(p)
 

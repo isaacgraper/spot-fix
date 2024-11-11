@@ -15,8 +15,3 @@ go build -a -o bot.exe
 
 ./bot exec --help
 ```
-
-
-
-
-

@@ -34,6 +34,7 @@ func (pr *Process) Execute(c *config.Config) error {
 		New().
 		Bin(path).
 		Headless(false).
+		Set("start-maximized").
 		MustLaunch()
 
 	browser := rod.New().

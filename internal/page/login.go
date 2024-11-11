@@ -37,7 +37,7 @@ func (p *Page) Login(c *config.Credential) error {
 		return err
 	}
 
-	name.MustInput("Jorge").MustType(input.Tab)
+	name.MustInput("bot@icop").MustType(input.Tab)
 
 	pwd, err := p.Rod.Element("#inputPassword")
 	if err != nil {
