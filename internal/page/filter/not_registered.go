@@ -43,7 +43,7 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 
 	p.Loading()
 
-	time.Sleep(time.Second * 60)
+	time.Sleep(time.Second * 120)
 
 	ok, err := ValidateDateFilter(dateFilter, p)
 	if err != nil {

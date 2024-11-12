@@ -73,7 +73,8 @@ func (pr *Process) Execute(c *config.Config) error {
 
 		if !ok {
 			log.Println("[execute] filtering failed")
-			log.Panic("[execute] ending process with filter...")
+			log.Println("[execute] ending process with filter...")
+			os.Exit(1)
 			return nil
 		}
 
@@ -90,6 +91,7 @@ func (pr *Process) Execute(c *config.Config) error {
 		if !ok {
 			log.Println("[execute] filtering failed")
 			log.Panic("[execute] ending process with filter...")
+			os.Exit(1)
 			return nil
 		}
 

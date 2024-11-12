@@ -33,7 +33,7 @@ func FilterWorkSchedule(p *page.Page) (bool, error) {
 		return false, fmt.Errorf("[filter] error while trying to click into filter: %w", err)
 	}
 
-	time.Sleep(time.Second * 15)
+	time.Sleep(time.Second * 60)
 
 	validate, err := ValidateDataWorkSchedule(p)
 
