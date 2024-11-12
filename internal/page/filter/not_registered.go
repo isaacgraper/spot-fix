@@ -43,7 +43,7 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 
 	p.Loading()
 
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 60)
 
 	ok, err := ValidateDateFilter(dateFilter, p)
 	if err != nil {
@@ -51,7 +51,7 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 	}
 
 	if !ok {
-		log.Println("date filter is not from 1 week ago...")
+		log.Println("date expected is not from 1 week ago...")
 		return false, nil
 	}
 
