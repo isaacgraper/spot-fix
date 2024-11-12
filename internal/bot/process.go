@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/isaacgraper/spotfix.git/internal/common/config"
 	"github.com/isaacgraper/spotfix.git/internal/report"
@@ -29,7 +30,7 @@ func (pr *Process) ProcessHandler(c *config.Config) (bool, error) {
 
 func (pr *Process) ProcessResult(c *config.Config) {
 	if c.Max < 1 {
-		log.Println("[processor] no results to process")
+		log.Println("[process] no results to process")
 		return
 	}
 
@@ -39,14 +40,14 @@ func (pr *Process) ProcessResult(c *config.Config) {
 		if end > c.Max {
 			end = c.Max
 		}
-		log.Printf("[processor] batch %d-%d initializing\n", i+1, end)
+		log.Printf("[process] batch %d-%d initializing\n", i+1, end)
 		pr.ProcessBatch(i+1, end, c)
 	}
 
-	log.Printf("[processor] ending processor with %d inconsistencies\n", len(pr.Results))
+	log.Printf("[process] ending process with %d inconsistencies\n", len(pr.Results))
 
 	if len(pr.Results) == 0 {
-		log.Println("[processor] no inconsistencies found")
+		log.Println("[process] no inconsistencies found")
 	} else {
 		pr.Results = make([]report.ReportData, 0)
 		pr.CompleteBatch("Cancelamento automático via Bot")
@@ -54,32 +55,13 @@ func (pr *Process) ProcessResult(c *config.Config) {
 }
 
 func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
-	pr.page.Rod.MustEval(`() => {
-        const elements = document.querySelectorAll("tr[data-id]");
-        elements.forEach((el, index) => {
-            el.id = "inconsistency-" + (index + 1);
-        });
-    }`)
 
-	pr.page.Loading()
+	pr.page.SetResultsId()
 
-	results := pr.page.Rod.MustEval(fmt.Sprintf(`() => {
-	const results = [];
-		for (let i = %d; i <= %d; i++) {
-			const row = document.querySelector('#inconsistency-' + i);
-			if (row) {
-				results.push({
-					index: i,
-					name: row.querySelector('td.ng-binding:nth-child(2)').textContent,
-					hour: row.querySelector('td.ng-binding:nth-child(6)').textContent,
-					category: row.querySelector('td.ng-binding:nth-child(7)').textContent,
-				});
-			}
-		}
-	return results;
-	}`, start, end))
-
-	pr.page.Loading()
+	results, err := pr.page.GetResults(start, end)
+	if err != err {
+		return fmt.Errorf("[process] error while trying to evaluate inconsistencies: %w", err)
+	}
 
 	for _, result := range results.Arr() {
 		index := result.Get("index").Int()
@@ -95,7 +77,7 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 			category != "Não registrado"
 
 		if !shouldProcess {
-			log.Println("[processor] inconsistency not found")
+			log.Println("[process] inconsistency not found")
 		}
 
 		if shouldProcess {
@@ -112,10 +94,10 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 
 			err := pr.page.Click(fmt.Sprintf(`#inconsistency-%d.ng-scope i`, index))
 			if err != nil {
-				return fmt.Errorf("[processor] failed to click on inconsistency %w", err)
+				return fmt.Errorf("[process] failed to click on inconsistency %w", err)
 			}
 
-			log.Printf("[processor] found:  %s - %s - %s", name, hour, category)
+			log.Printf("[process] found:  %s - %s - %s", name, hour, category)
 		}
 	}
 
@@ -123,13 +105,48 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 }
 
 func (pr *Process) ProcessNotRegistered() error {
+	log.Println("[process] processing inconsistencies...")
+
 	for {
 		err := pr.page.Click(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`)
 		if err != nil {
-			return fmt.Errorf("[processor] failed to click filter checkbox: %w", err)
+			return fmt.Errorf("[process] failed to click filter checkbox: %w", err)
 		}
 
 		pr.page.Loading()
+
+		pr.page.SetResultsId()
+
+		results, err := pr.page.GetResults(1, 0)
+		if err != nil {
+			return fmt.Errorf("[process] error while trying to evaluate inconsistencies: %w", err)
+		}
+
+		for _, result := range results.Arr() {
+			index := result.Get("index").Int()
+			category := result.Get("category").String()
+			hour := result.Get("hour").String()
+			name := result.Get("name").String()
+
+			pr.Results = append(pr.Results, report.ReportData{
+				Index:    index,
+				Name:     name,
+				Hour:     hour,
+				Category: category,
+			})
+
+			if category != "Não registrado" {
+				log.Panicf("[process] inconsistence category must not be different from the filter")
+			}
+		}
+
+		log.Println("[process] saving results")
+
+		report.NewReport(pr.Results).SaveReport()
+
+		pr.page.Loading()
+
+		time.Sleep(time.Second * 10)
 
 		complete, err := pr.CompleteNotRegistered("Cancelamento automático via Bot: Não Registrado")
 		if err != nil {
@@ -160,15 +177,54 @@ func (pr *Process) ProcessNotRegistered() error {
 }
 
 func (pr *Process) ProcessWorkSchedule() error {
+	log.Println("[process] processing inconsistencies...")
+
 	for {
 		err := pr.page.Click(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`)
 		if err != nil {
-			return fmt.Errorf("[processor] failed to click filter checkbox: %w", err)
+			return fmt.Errorf("[process] failed to click filter checkbox: %w", err)
 		}
 
 		pr.page.Loading()
 
-		complete, err := pr.CompleteWorkSchedule("Cancelamento automático via Bot: Erros de escala")
+		pr.page.SetResultsId()
+
+		results, err := pr.page.GetResults(1, 0)
+		if err != nil {
+			return fmt.Errorf("[process] error while trying to evaluate inconsistencies: %w", err)
+		}
+
+		for _, result := range results.Arr() {
+			index := result.Get("index").Int()
+			category := result.Get("category").String()
+			hour := result.Get("hour").String()
+			name := result.Get("name").String()
+
+			pr.Results = append(pr.Results, report.ReportData{
+				Index:    index,
+				Name:     name,
+				Hour:     hour,
+				Category: category,
+			})
+
+			shouldProcess := (category != "Terminal não autorizado") &&
+				(category != "Horário inválido") &&
+				(category != "Fora do perímetro")
+
+			if !shouldProcess {
+				log.Panicf("[process] inconsistence category must not be different from the filter")
+			}
+		}
+
+		log.Println("[process] saving results")
+
+		report.NewReport(pr.Results).SaveReport()
+
+		pr.page.Loading()
+
+		time.Sleep(time.Second * 10)
+
+		complete, err := pr.CompleteWorkSchedule("Ajustado automaticamente via Bot: Erros de escala")
 		if err != nil {
 			return fmt.Errorf("[process] error while trying to complete workSchedule process %w", err)
 		}
