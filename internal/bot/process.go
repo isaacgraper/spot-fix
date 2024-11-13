@@ -156,7 +156,7 @@ func (pr *Process) ProcessNotRegistered() error {
 		if complete {
 			pagination, err := pr.page.Pagination()
 			if err != nil {
-				return fmt.Errorf("[process] error while tring to paginate")
+				return fmt.Errorf("[process] error while trying to paginate")
 			}
 
 			if pagination {
