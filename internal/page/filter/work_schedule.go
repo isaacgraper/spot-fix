@@ -33,7 +33,17 @@ func FilterWorkSchedule(p *page.Page) (bool, error) {
 		return false, fmt.Errorf("[filter] error while trying to click into filter: %w", err)
 	}
 
-	time.Sleep(time.Second * 60)
+	p.Loading()
+
+	p.Rod.MustWaitRequestIdle()
+
+	el, err := p.Rod.Element(".js-loader-container")
+	if err != nil {
+		return false, fmt.Errorf("[filter] error element not found: %w", err)
+	}
+
+	el.MustWaitInvisible()
+	time.Sleep(time.Second * 30)
 
 	validate, err := ValidateDataWorkSchedule(p)
 

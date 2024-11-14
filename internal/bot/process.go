@@ -180,6 +180,11 @@ func (pr *Process) ProcessWorkSchedule() error {
 	log.Println("[process] processing inconsistencies...")
 
 	for {
+		hasCheckbox := pr.page.Rod.MustHas(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`)
+		if !hasCheckbox {
+			return fmt.Errorf("[process] error element was not found")
+		}
+
 		err := pr.page.Click(`#content > div.app-content-body.nicescroll-continer > div.content-body > div.app-content-body > div.tab-lis > div.content-table > table > thead > tr > th:nth-child(1) > label > i`)
 		if err != nil {
 			return fmt.Errorf("[process] failed to click filter checkbox: %w", err)

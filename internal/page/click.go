@@ -25,7 +25,7 @@ func (p *Page) Click(selector string) error {
 			panic(err)
 		}
 
-		time.Sleep(time.Millisecond * 250)
+		time.Sleep(time.Millisecond * 500)
 	})
 
 	if err != nil {
