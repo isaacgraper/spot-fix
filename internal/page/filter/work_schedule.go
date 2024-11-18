@@ -43,7 +43,7 @@ func FilterWorkSchedule(p *page.Page) (bool, error) {
 	}
 
 	el.MustWaitInvisible()
-	time.Sleep(time.Minute)
+	time.Sleep(time.Second * 90)
 
 	validate, err := ValidateDataWorkSchedule(p)
 

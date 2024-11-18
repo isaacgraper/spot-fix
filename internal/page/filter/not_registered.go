@@ -51,7 +51,7 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 	}
 
 	el.MustWaitInvisible()
-	time.Sleep(time.Minute)
+	time.Sleep(time.Second * 90)
 
 	ok, err := ValidateDateFilter(dateFilter, p)
 	if err != nil {
@@ -92,7 +92,7 @@ func ApplyDateFilter(p *page.Page) (string, error) {
 	}
 
 	date := time.Now()
-	newDate := date.AddDate(0, 0, -7)
+	newDate := date.AddDate(0, 0, -8)
 
 	el.MustInputTime(newDate)
 
