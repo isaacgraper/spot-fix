@@ -212,13 +212,13 @@ func (pr *Process) ProcessWorkSchedule() error {
 				Category: category,
 			})
 
-			shouldProcess := (category != "Terminal não autorizado") &&
-				(category != "Horário inválido") &&
-				(category != "Fora do perímetro")
+			// shouldProcess := (category != "Terminal não autorizado") &&
+			// 	(category != "Horário inválido") &&
+			// 	(category != "Fora do perímetro")
 
-			if !shouldProcess {
-				log.Panicf("[process] inconsistence category must not be different from the filter")
-			}
+			// if !shouldProcess {
+			// 	log.Panicf("[process] inconsistence category must not be different from the filter")
+			// }
 		}
 
 		log.Println("[process] saving results")
