@@ -37,13 +37,13 @@ func FilterWorkSchedule(p *page.Page) (bool, error) {
 
 	p.Rod.MustWaitRequestIdle()
 
-	el, err := p.Rod.Element(".js-loader-container")
+	el, err := p.Rod.Element("div.js-loader-container > img")
 	if err != nil {
 		return false, fmt.Errorf("[filter] error element not found: %w", err)
 	}
 
 	el.MustWaitInvisible()
-	time.Sleep(time.Second * 30)
+	time.Sleep(time.Second * 60)
 
 	validate, err := ValidateDataWorkSchedule(p)
 
