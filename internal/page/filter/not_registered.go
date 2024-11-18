@@ -51,7 +51,7 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 	}
 
 	el.MustWaitInvisible()
-	time.Sleep(time.Second * 60)
+	time.Sleep(time.Minute)
 
 	ok, err := ValidateDateFilter(dateFilter, p)
 	if err != nil {
