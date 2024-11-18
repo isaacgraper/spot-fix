@@ -3,9 +3,7 @@ package bot
 import (
 	"fmt"
 	"log"
-	"os"
 	"strings"
-	"time"
 
 	"github.com/isaacgraper/spotfix.git/internal/common/config"
 	"github.com/isaacgraper/spotfix.git/internal/report"
@@ -136,6 +134,8 @@ func (pr *Process) ProcessNotRegistered() error {
 				Category: category,
 			})
 
+			category = strings.TrimSpace(category)
+
 			if category != "Não registrado" {
 				log.Panicf("[process] inconsistence category must not be different from the filter")
 			}
@@ -146,8 +146,6 @@ func (pr *Process) ProcessNotRegistered() error {
 		report.NewReport(pr.Results).SaveReport()
 
 		pr.page.Loading()
-
-		time.Sleep(time.Second * 10)
 
 		complete, err := pr.CompleteNotRegistered("Cancelamento automático via Bot: Não Registrado")
 		if err != nil {
@@ -168,16 +166,6 @@ func (pr *Process) ProcessNotRegistered() error {
 		} else {
 			log.Panicf("[process] error ocurred while trying to process and paginated workSchedule...")
 			break
-		}
-
-		hasModal := pr.page.Rod.MustHas(`div.modal-content`)
-		if !hasModal {
-			return fmt.Errorf("[process] error element was not found")
-		}
-
-		if hasModal {
-			log.Println("[process] modal has appeared, unable to process")
-			os.Exit(1)
 		}
 
 		pr.page.Loading()
@@ -242,8 +230,6 @@ func (pr *Process) ProcessWorkSchedule() error {
 
 		pr.page.Loading()
 
-		time.Sleep(time.Second * 10)
-
 		complete, err := pr.CompleteWorkSchedule("Ajustado automaticamente via Bot: Erros de escala")
 		if err != nil {
 			return fmt.Errorf("[process] error while trying to complete workSchedule process %w", err)
@@ -263,16 +249,6 @@ func (pr *Process) ProcessWorkSchedule() error {
 		} else {
 			log.Panicf("[process] error ocurred while trying to process and paginated workSchedule...")
 			break
-		}
-
-		hasModal := pr.page.Rod.MustHas(`div.modal-content`)
-		if !hasModal {
-			return fmt.Errorf("[process] error element was not found")
-		}
-
-		if hasModal {
-			log.Println("[process] modal has appeared, unable to process")
-			os.Exit(1)
 		}
 
 		pr.page.Loading()
