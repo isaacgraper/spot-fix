@@ -3,7 +3,6 @@ package filter
 import (
 	"fmt"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/go-rod/rod"
@@ -35,6 +34,8 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 		return false, fmt.Errorf("[filter] error while trying to apply date filter: %w", err)
 	}
 
+	log.Printf("[filter] filter data: %s", dateFilter)
+
 	p.Rod.Eval(`document.querySelector("#app > searchfilterinconsistencies > div > div.row.overscreen_child > div.filter_container > div.hbox.filter_button.ng-scope > a.btn.button_link.btn-dark.ng-binding").id = "filter-btn"`)
 
 	if err := p.Click("#filter-btn"); err != nil {
@@ -53,15 +54,15 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 	el.MustWaitInvisible()
 	time.Sleep(time.Second * 90)
 
-	ok, err := ValidateDateFilter(dateFilter, p)
-	if err != nil {
-		return false, fmt.Errorf("[filter] error while trying to validate date filter: %w", err)
-	}
+	// ok, err := ValidateDateFilter(dateFilter, p)
+	// if err != nil {
+	// 	return false, fmt.Errorf("[filter] error while trying to validate date filter: %w", err)
+	// }
 
-	if !ok {
-		log.Println("date expected is not from 1 week ago...")
-		return false, nil
-	}
+	// if !ok {
+	// 	log.Println("date expected is not from 1 week ago...")
+	// 	return false, nil
+	// }
 
 	validate, err := ValidateDataNotRegistered(p)
 
@@ -101,26 +102,26 @@ func ApplyDateFilter(p *page.Page) (string, error) {
 	return newDate.Format("02-01-2006"), nil
 }
 
-func ValidateDateFilter(dateFilter string, p *page.Page) (bool, error) {
+// func ValidateDateFilter(dateFilter string, p *page.Page) (bool, error) {
 
-	p.Rod.MustEval(`() => document.querySelectorAll("tr[data-id] > td.ng-binding:nth-child(6)")[0].id = "first-date"`)
+// 	p.Rod.MustEval(`() => document.querySelectorAll("tr[data-id] > td.ng-binding:nth-child(6)")[0].id = "first-date"`)
 
-	date := p.Rod.MustElement("td#first-date.ng-binding").MustText()
+// 	date := p.Rod.MustElement("td#first-date.ng-binding").MustText()
 
-	datesplit := strings.Split(date, " ")
-	date = strings.TrimSpace(datesplit[0])
+// 	datesplit := strings.Split(date, " ")
+// 	date = strings.TrimSpace(datesplit[0])
 
-	datetime, err := time.Parse("02/01/2006", date)
-	if err != nil {
-		return false, nil
-	}
+// 	datetime, err := time.Parse("02/01/2006", date)
+// 	if err != nil {
+// 		return false, nil
+// 	}
 
-	if dateFilter != datetime.Format("02-01-2006") {
-		log.Printf("date filer: %s - date expected: %s", dateFilter, datetime.Format("02-01-2006"))
-		return false, nil
-	}
-	return true, nil
-}
+// 	if dateFilter != datetime.Format("02-01-2006") {
+// 		log.Printf("date filer: %s - date expected: %s", dateFilter, datetime.Format("02-01-2006"))
+// 		return false, nil
+// 	}
+// 	return true, nil
+// }
 
 func ValidateDataNotRegistered(p *page.Page) (bool, error) {
 	has := p.Rod.MustHas("td>p")
