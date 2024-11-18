@@ -2,7 +2,6 @@ package page
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/ysmood/gson"
 )
@@ -41,8 +40,6 @@ func (p *Page) GetResults(start, end int) (gson.JSON, error) {
 		return results, nil
 	} else {
 		var qt int
-
-		log.Println("[results] end is 0")
 
 		qt = p.Rod.MustEval(`() => document.querySelectorAll("tr[data-id]").length`).Int() - 1
 		results := p.Rod.MustEval(fmt.Sprintf(`() => {

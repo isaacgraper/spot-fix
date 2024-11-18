@@ -36,7 +36,7 @@ func FilterWorkSchedule(p *page.Page) (bool, error) {
 	p.Loading()
 
 	p.Rod.MustWaitRequestIdle()
-	time.Sleep(time.Second * 90)
+	time.Sleep(time.Second * 60)
 
 	validate, err := ValidateDataWorkSchedule(p)
 

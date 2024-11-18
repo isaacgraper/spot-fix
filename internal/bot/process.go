@@ -3,6 +3,7 @@ package bot
 import (
 	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
@@ -169,6 +170,16 @@ func (pr *Process) ProcessNotRegistered() error {
 			break
 		}
 
+		hasModal := pr.page.Rod.MustHas(`div.modal-content`)
+		if !hasModal {
+			return fmt.Errorf("[process] error element was not found")
+		}
+
+		if hasModal {
+			log.Println("[process] modal has appeared, unable to process")
+			os.Exit(1)
+		}
+
 		pr.page.Loading()
 
 	}
@@ -212,13 +223,17 @@ func (pr *Process) ProcessWorkSchedule() error {
 				Category: category,
 			})
 
-			// shouldProcess := (category != "Terminal não autorizado") &&
-			// 	(category != "Horário inválido") &&
-			// 	(category != "Fora do perímetro")
+			category = strings.TrimSpace(category)
 
-			// if !shouldProcess {
-			// 	log.Panicf("[process] inconsistence category must not be different from the filter")
-			// }
+			shouldProcess := (category == "Terminal não autorizado") ||
+				(category == "Horário inválido") ||
+				(category == "Fora do perímetro")
+
+			if shouldProcess {
+				continue
+			} else {
+				log.Panicf("[process] inconsistence category must not be different from the filter")
+			}
 		}
 
 		log.Println("[process] saving results")
@@ -248,6 +263,16 @@ func (pr *Process) ProcessWorkSchedule() error {
 		} else {
 			log.Panicf("[process] error ocurred while trying to process and paginated workSchedule...")
 			break
+		}
+
+		hasModal := pr.page.Rod.MustHas(`div.modal-content`)
+		if !hasModal {
+			return fmt.Errorf("[process] error element was not found")
+		}
+
+		if hasModal {
+			log.Println("[process] modal has appeared, unable to process")
+			os.Exit(1)
 		}
 
 		pr.page.Loading()

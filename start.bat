@@ -30,4 +30,5 @@ for /l %%i in (1,1,60) do (
     )  
         timeout /t 60 > nul
     )
+    timeout /t 120
     goto loop
