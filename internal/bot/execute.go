@@ -33,7 +33,7 @@ func (pr *Process) Execute(c *config.Config) error {
 	u := launcher.
 		New().
 		Bin(path).
-		Headless(true).
+		Headless(false).
 		Set("start-maximized").
 		MustLaunch()
 

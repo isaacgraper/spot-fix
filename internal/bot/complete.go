@@ -33,12 +33,12 @@ func (pr *Process) CompleteNotRegistered(note string) (bool, error) {
 
 	err := pr.page.Click(`a.btn.button_link.btn-primary.ng-binding`)
 	if err != nil {
-		return false, fmt.Errorf("[finisher] failed to click on submit button: %w", err)
+		return false, fmt.Errorf("[complete] failed to click on submit button: %w", err)
 	}
 
 	pr.page.Loading()
 
-	log.Println("[finisher] inconsistencies processed!")
+	log.Println("[complete] inconsistencies processed!")
 
 	return true, nil
 }

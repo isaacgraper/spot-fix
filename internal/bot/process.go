@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/isaacgraper/spotfix.git/internal/common/config"
 	"github.com/isaacgraper/spotfix.git/internal/report"
@@ -123,7 +124,7 @@ func (pr *Process) ProcessNotRegistered() error {
 
 		for _, result := range results.Arr() {
 			index := result.Get("index").Int()
-			category := result.Get("category").String()
+			category := strings.TrimSpace(result.Get("category").String())
 			hour := result.Get("hour").String()
 			name := result.Get("name").String()
 
@@ -134,10 +135,22 @@ func (pr *Process) ProcessNotRegistered() error {
 				Category: category,
 			})
 
-			category = strings.TrimSpace(category)
+			date := strings.Split(hour, " ")[0]
+			date = strings.ReplaceAll(date, "/", "-")
+
+			parsedDate, err := time.Parse("01-02-2006", date)
+			if err != nil {
+				log.Panicf("[process] error while trying to parse string to date: %s", date)
+			}
+
+			oneWeekAgo := time.Now().AddDate(0, 0, -7)
+
+			if parsedDate.After(oneWeekAgo) {
+				log.Panicln("[process] date must not be different from the filter")
+			}
 
 			if category != "Não registrado" {
-				log.Panicf("[process] inconsistence category must not be different from the filter")
+				log.Panicln("[process] category must not be different from the filter")
 			}
 		}
 
@@ -166,6 +179,17 @@ func (pr *Process) ProcessNotRegistered() error {
 		} else {
 			log.Panicf("[process] error ocurred while trying to process and paginated workSchedule...")
 			break
+		}
+
+		hasModal, _, err := pr.page.Rod.Has("div.modal-content")
+
+		if err != nil {
+			return fmt.Errorf("an error has ocurred: %w", err)
+		}
+
+		if hasModal {
+			log.Println("An wild modal has apperead!")
+			time.Sleep(time.Minute * 2)
 		}
 
 		pr.page.Loading()
@@ -220,7 +244,7 @@ func (pr *Process) ProcessWorkSchedule() error {
 			if shouldProcess {
 				continue
 			} else {
-				log.Panicf("[process] inconsistence category must not be different from the filter")
+				log.Panicf("[process] inconsistency category must not be different from the filter")
 			}
 		}
 

@@ -32,13 +32,8 @@ func Contains(seen map[int]bool, index int) bool {
 func (f *File) Format(data []ReportData) []byte {
 	var builder strings.Builder
 
-	seen := make(map[int]bool)
-
 	for _, element := range data {
-		if !Contains(seen, element.Index) {
-			seen[element.Index] = true
-			builder.WriteString(fmt.Sprintf("%-1d - %s - %s - %s\n", element.Index, element.Name, element.Hour, element.Category))
-		}
+		builder.WriteString(fmt.Sprintf("%-1d - %s - %s - %s\n", element.Index, element.Name, element.Hour, element.Category))
 	}
 
 	return []byte(builder.String())
