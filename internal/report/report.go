@@ -39,16 +39,15 @@ func (f *File) Format(data []ReportData) []byte {
 	return []byte(builder.String())
 }
 
-func (f *File) SaveReport() {
-	fileName := fmt.Sprintf("relatório-inconsistências-%s.txt", time.Now().Format("02-01-2006"))
+func (f *File) SaveReport(report string) {
+	fileName := fmt.Sprintf("relatório-inconsistências-%s-%s.txt", report, time.Now().Format("02-01-2006"))
 	filePath := filepath.Join("Z:\\", "RobôCOP", "Relatórios", fileName)
 
-	file, err := os.Create(filePath)
+	file, err := os.OpenFile(filePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
-		fmt.Printf("error creating file: %v\n", err)
+		fmt.Printf("error opening file: %v\n", err)
 		return
 	}
-
 	defer file.Close()
 
 	_, err = file.Write(f.Format(f.Content))

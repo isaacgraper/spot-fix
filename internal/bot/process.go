@@ -88,7 +88,7 @@ func (pr *Process) ProcessBatch(start, end int, c *config.Config) error {
 				Category: category,
 			})
 
-			report.NewReport(pr.Results).SaveReport()
+			report.NewReport(pr.Results).SaveReport("por-lote")
 
 			pr.page.Loading()
 
@@ -156,7 +156,7 @@ func (pr *Process) ProcessNotRegistered() error {
 
 		log.Println("[process] saving results")
 
-		report.NewReport(pr.Results).SaveReport()
+		report.NewReport(pr.Results).SaveReport("não-registrado")
 
 		pr.page.Loading()
 
@@ -179,17 +179,6 @@ func (pr *Process) ProcessNotRegistered() error {
 		} else {
 			log.Panicf("[process] error ocurred while trying to process and paginated workSchedule...")
 			break
-		}
-
-		hasModal, _, err := pr.page.Rod.Has("div.modal-content")
-
-		if err != nil {
-			return fmt.Errorf("an error has ocurred: %w", err)
-		}
-
-		if hasModal {
-			log.Println("An wild modal has apperead!")
-			time.Sleep(time.Minute * 2)
 		}
 
 		pr.page.Loading()
@@ -250,7 +239,7 @@ func (pr *Process) ProcessWorkSchedule() error {
 
 		log.Println("[process] saving results")
 
-		report.NewReport(pr.Results).SaveReport()
+		report.NewReport(pr.Results).SaveReport("erros-de-escala")
 
 		pr.page.Loading()
 

@@ -40,6 +40,29 @@ func (pr *Process) CompleteNotRegistered(note string) (bool, error) {
 
 	log.Println("[complete] inconsistencies processed!")
 
+	// A modal can appear, so we need to remove it then paginate the page
+	hasModal, _, err := pr.page.Rod.Has("div.modal")
+
+	if err != nil {
+		return false, fmt.Errorf("[complete] an error has ocurred: %w", err)
+	}
+
+	if hasModal {
+		log.Println("[complete] an wild modal has apperead!")
+
+		hasBtn, _, err := pr.page.Rod.Has("div.close")
+
+		if err != nil {
+			return false, fmt.Errorf("[complete] an error has ocurred: %w", err)
+		}
+
+		if hasBtn {
+			if err := pr.page.Click(`div.close`); err != nil {
+				return false, fmt.Errorf("[complete] error while trying to close modal: %w", err)
+			}
+		}
+	}
+
 	return true, nil
 }
 
@@ -75,6 +98,29 @@ func (pr *Process) CompleteWorkSchedule(note string) (bool, error) {
 	pr.page.Loading()
 
 	log.Println("[complete] inconsistencies processed!")
+
+	// A modal can appear, so we need to remove it then paginate the page
+	hasModal, _, err := pr.page.Rod.Has("div.modal")
+
+	if err != nil {
+		return false, fmt.Errorf("[complete] an error has ocurred: %w", err)
+	}
+
+	if hasModal {
+		log.Println("[complete] an wild modal has apperead!")
+
+		hasBtn, _, err := pr.page.Rod.Has("div.close")
+
+		if err != nil {
+			return false, fmt.Errorf("[complete] an error has ocurred: %w", err)
+		}
+
+		if hasBtn {
+			if err := pr.page.Click(`div.close`); err != nil {
+				return false, fmt.Errorf("[complete] error while trying to close modal: %w", err)
+			}
+		}
+	}
 
 	return true, nil
 }
@@ -112,6 +158,8 @@ func (pr *Process) CompleteBatch(note string) (bool, error) {
 	pr.page.Loading()
 
 	log.Println("[complete] inconsistencies processed!")
+
+	pr.page.Loading()
 
 	return true, nil
 }
