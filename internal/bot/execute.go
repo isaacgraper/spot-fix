@@ -45,8 +45,7 @@ func (pr *Process) Execute(c *config.Config) error {
 	defer browser.MustClose()
 
 	if err := godotenv.Load(); err != nil {
-		log.Println("error loading .env file:", err)
-		return err
+		return fmt.Errorf("[execute] error loading .env file: %w", err)
 	}
 
 	pageInstance := browser.MustPage(os.Getenv("URL")).MustWaitLoad()
@@ -56,13 +55,11 @@ func (pr *Process) Execute(c *config.Config) error {
 	}
 
 	if err := pr.page.Login(c.NewCredential()); err != nil {
-		log.Printf("[execute] login failed: %v", err)
-		return nil
+		return fmt.Errorf("[execute] error login: %w", err)
 	}
 
 	if err := pr.page.NavigateToInconsistencies(); err != nil {
-		log.Printf("[execute] navigate to inconsistencies failed: %v", err)
-		return nil
+		return fmt.Errorf("[execute] error navigate to inconsistencies")
 	}
 
 	if c.NotRegistered {
@@ -72,10 +69,7 @@ func (pr *Process) Execute(c *config.Config) error {
 		}
 
 		if !ok {
-			log.Println("[execute] filtering failed")
-			log.Println("[execute] ending process with filter...")
-			os.Exit(1)
-			return nil
+			return fmt.Errorf("[execute] filter not working as expected: %w", err)
 		}
 
 		log.Println("[execute] starting process with notRegistered filter...")
@@ -99,9 +93,5 @@ func (pr *Process) Execute(c *config.Config) error {
 		pr.ProcessWorkSchedule()
 	}
 
-	if c.ProcessBatch {
-		log.Println("[execute] starting process with batch...")
-		pr.ProcessHandler(c)
-	}
 	return nil
 }

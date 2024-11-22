@@ -25,16 +25,14 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 		return false, fmt.Errorf("[filter] failed to click clocking types: %w", err)
 	}
 
-	if err := ApplyFilerNotRegistered(element); err != nil {
+	if err := applyFilerNotRegistered(element); err != nil {
 		return false, fmt.Errorf("[filter] error while trying to apply filter: %w", err)
 	}
 
-	dateFilter, err := ApplyDateFilter(p)
+	dateFilter, err := applyDateFilter(p)
 	if err != nil {
-		return false, fmt.Errorf("[filter] error while trying to apply date filter: %w", err)
+		return false, fmt.Errorf("[filter] error while trying to apply date %s to filter: %w", dateFilter, err)
 	}
-
-	log.Printf("[filter] filter data: %s", dateFilter)
 
 	p.Rod.Eval(`document.querySelector("#app > searchfilterinconsistencies > div > div.row.overscreen_child > div.filter_container > div.hbox.filter_button.ng-scope > a.btn.button_link.btn-dark.ng-binding").id = "filter-btn"`)
 
@@ -47,17 +45,7 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 	p.Rod.MustWaitRequestIdle()
 	time.Sleep(time.Second * 30)
 
-	// ok, err := ValidateDateFilter(dateFilter, p)
-	// if err != nil {
-	// 	return false, fmt.Errorf("[filter] error while trying to validate date filter: %w", err)
-	// }
-
-	// if !ok {
-	// 	log.Println("date expected is not from 1 week ago...")
-	// 	return false, nil
-	// }
-
-	validate, err := ValidateDataNotRegistered(p)
+	validate, err := validateDataNotRegistered(p)
 
 	if err != nil {
 		return false, fmt.Errorf("[filter] error while trying to check if data was not found: %w", err)
@@ -73,13 +61,13 @@ func FilterNotRegistered(p *page.Page) (bool, error) {
 	return true, nil
 }
 
-func ApplyFilerNotRegistered(element *rod.Element) error {
+func applyFilerNotRegistered(element *rod.Element) error {
 	element.MustWaitVisible().
 		MustSelect("Não registrado")
 	return nil
 }
 
-func ApplyDateFilter(p *page.Page) (string, error) {
+func applyDateFilter(p *page.Page) (string, error) {
 	el, err := p.Rod.Element("input#finishDate")
 	if err != nil {
 		return " ", fmt.Errorf("[filter] error finding element: %w", err)
@@ -95,7 +83,7 @@ func ApplyDateFilter(p *page.Page) (string, error) {
 	return newDate.Format("02-01-2006"), nil
 }
 
-func ValidateDataNotRegistered(p *page.Page) (bool, error) {
+func validateDataNotRegistered(p *page.Page) (bool, error) {
 	has := p.Rod.MustHas("td>p")
 	if has {
 		el, err := p.Rod.Element("td>p")

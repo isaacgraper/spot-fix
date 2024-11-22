@@ -33,23 +33,21 @@ func (p *Page) Login(c *config.Credential) error {
 
 	name, err := p.Rod.Element("#inputUsername")
 	if err != nil {
-		log.Printf("[login] error finding element: %v\n", err)
-		return err
+		return fmt.Errorf("[login] error finding element: %w", err)
 	}
 
 	name.MustInput("bot@icop").MustType(input.Tab)
 
 	pwd, err := p.Rod.Element("#inputPassword")
 	if err != nil {
-		log.Printf("[login] error finding element: %v\n", err)
-		return err
+		return fmt.Errorf("[login] error finding element: %w", err)
 	}
 
 	pwd.MustInput(c.Password).MustType(input.Enter)
 
 	p.Loading()
 
-	log.Println("[login] bot logged in successfully!")
+	log.Println("[login] logged in successfully!")
 
 	return nil
 }
